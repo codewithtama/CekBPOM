@@ -124,27 +124,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'CekBPOM',
-                        style: GoogleFonts.lexend(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'CekBPOM',
+                          style: GoogleFonts.lexend(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
                         ),
-                      ),
-                      const Text(
-                        'Verifikasi Keaslian & Keamanan Produk',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
+                        const Text(
+                          'Verifikasi Keaslian & Keamanan Produk',
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 16),
                   Container(
                     width: 48,
                     height: 48,

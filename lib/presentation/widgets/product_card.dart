@@ -149,12 +149,15 @@ class ProductCard extends StatelessWidget {
             ),
             if (brand != '-' && brand.isNotEmpty) ...[
               const SizedBox(width: 8),
-              Text(
-                'Brand: $brand',
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+              Flexible(
+                child: Text(
+                  'Brand: $brand',
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],

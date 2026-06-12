@@ -113,14 +113,17 @@ class InfoScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      guide['title']!,
-                      style: GoogleFonts.lexend(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: AppColors.primary,
+                    Expanded(
+                      child: Text(
+                        guide['title']!,
+                        style: GoogleFonts.lexend(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: AppColors.primary,
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 12),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
@@ -451,13 +454,17 @@ class InfoScreen extends ConsumerWidget {
                               ),
                             ),
                           ),
+                          const SizedBox(width: 8),
                           if (news.date.isNotEmpty)
-                            Text(
-                              news.date,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textSecondary,
-                                fontWeight: FontWeight.w500,
+                            Flexible(
+                              child: Text(
+                                news.date,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
                         ],
