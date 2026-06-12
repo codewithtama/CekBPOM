@@ -1,105 +1,76 @@
-# CekBPOM — Product Authenticity Checker
+# CekBPOM — Aplikasi Cek Keaslian & Keamanan Produk BPOM
 
-**CekBPOM** is a high-performance, premium-designed Flutter Android application that verifies Indonesian product authenticity by querying the BPOM (Badan Pengawas Obat dan Makanan) database. 
+Aplikasi Android berbasis Flutter untuk cek keaslian produk kosmetik, obat, jamu, suplemen, dan makanan olahan langsung dari database resmi BPOM RI. Tinggal scan barcode produk atau input nomor registrasinya secara manual, status keamanannya langsung kelihatan.
 
-With this application, users can scan product barcodes or input registration numbers manually to determine if a product (cosmetics, food, medicine, traditional herbs, or health supplements) is officially registered, expired, or potentially counterfeit.
-
----
-
-## 🌟 Key Features
-
-1. **Dual Barcode Scanner**
-   - **Live Camera Scanning**: High-speed camera reader using the `mobile_scanner` library (supporting EAN-13, EAN-8, QR Code, and Code128).
-   - **Gallery Image Import**: Select images directly from the device gallery using the `image_picker` package to decode barcodes and QR codes from photos.
-   - **Zoom Scale Multiplier**: Tap-to-magnify camera scale overlay toggling among `1.0x`, `2.0x`, and `3.0x` zoom levels to capture small or distant barcodes effortlessly.
-   - **Torch & Manual Entry**: Quick toggle flashlight support and manual keyboard lookup fallbacks.
-
-2. **Real-time BPOM Product Lookup**
-   - Automatically queries the primary BPOM public API.
-   - Features a robust, dynamic scraping fallback to the official `cekbpom.pom.go.id/produk-dt/all` POST endpoint when the primary API is down.
-   - Captures product registration data, status (active/expired), manufacturer details, packaging details, and active ingredients.
-
-3. **Color-coded Safety Status Card**
-   - **Green Badge (AMAN):** Registered and active product.
-   - **Yellow/Orange Badge (PERLU DICEK / KEDALUWARSA):** Registered but expired, or requiring caution.
-   - **Red Badge (TIDAK TERDAFTAR):** Missing from the BPOM database (potentially fake/unregistered).
-
-4. **Persistent Scanning History**
-   - Saves all scanned items offline using `hive` local database storage.
-   - Dynamic search filter within history list.
-   - Counter badge indicator in the bottom navigation tab.
-   - Clear individual items or purge history completely.
-
-5. **Information & Educational Portal**
-   - "Cara Baca Kemasan": Illustrated step-by-step guides on reading BPOM codes (NA/NB/NC cosmetics, MD/ML foods, TR/TI traditional medicines, etc.).
-   - "Produk Berbahaya": Dynamic news scraper that fetches and parses the latest press releases, toxic cosmetics reports, recall logs, and official warnings directly from the BPOM Portal (pom.go.id/berita), with an offline fallback cache.
-
-6. **Settings Panel (Pengaturan)**
-   - Grouped user preferences dashboard replacing static About layouts.
-   - Toggles to enable/disable tactile vibration feedback and clicking sound feedback upon scanning success.
-   - Database administration tools to purge search cache and erase all scan history logs.
-   - Legal disclaimer, Privacy policies, app credits, and official ULPK complaint contact shortcuts.
+Aplikasi ini dibuat siap dideploy ke produksi tanpa menggunakan data mock (no mock data) dan langsung melakukan scraping dari web portal resmi BPOM jika API publik mereka sedang lambat atau down.
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## Fitur Utama
 
-- **Framework:** Flutter (Dart) - Compiled for Android (minSdk 21, targetSdk 34, compileSdk 36)
-- **State Management:** Riverpod (`flutter_riverpod` + `StateNotifier`)
-- **HTTP client:** Dio
-- **Local Database:** Hive + Hive Flutter
-- **UI & Animation:** Material 3 Custom Theme, Google Fonts (Plus Jakarta Sans & Lexend), Shimmer, Lottie, and Screenshot sharing.
-- **Project Structure:** Clean Architecture split by layers:
-  ```
-  lib/
-  ├── main.dart
-  ├── app.dart
-  ├── core/
-  │   ├── constants/       # API endpoints, colors, layout tokens
-  │   ├── theme/           # App-wide Material 3 theme & Google Fonts
-  │   └── utils/           # Barcode parser, connectivity helper
-  ├── data/
-  │   ├── models/          # Product and History domain models (Hive annotated)
-  │   ├── repositories/    # BPOM repository coordinating API & cache
-  │   └── services/        # Dio APIs and local Hive service
-  └── presentation/
-      ├── screens/         # Home, Scanner, Result, History, and Info screens
-      ├── widgets/         # Status badges, product cards, list tiles, shimmer overlays
-      └── providers/       # Riverpod state managers
-  ```
+- **Pindai Barcode (Kamera & Galeri)**
+  - Kamera pemindai cepat untuk barcode biasa (EAN-13, EAN-8) atau QR Code menggunakan library `mobile_scanner`.
+  - Tombol **Zoom Multiplier (1.0x, 2.0x, 3.0x)** untuk memudahkan pemindaian jika barcode terlalu kecil atau posisinya jauh dari kamera.
+  - Fitur scan barcode dari **Galeri Foto** HP (menggunakan `image_picker`), sangat berguna jika Anda punya foto screenshot kemasan produk.
+  - Tombol flash kamera (torch) untuk memindai di tempat gelap.
+
+- **Pengecekan Database BPOM Real-time**
+  - Aplikasi secara otomatis mencoba menghubungi API publik BPOM.
+  - Jika API publik mati/RTO (sering terjadi), sistem otomatis menggunakan **fallback web scraper** ke `cekbpom.pom.go.id` dengan mengambil CSRF token dan session cookie secara dinamis via POST request.
+  - Data yang ditampilkan sangat detail: Nama produk, merk, kategori, pendaftar/produsen, kemasan, tanggal registrasi, tanggal kedaluwarsa, hingga bahan kandungan (komposisi).
+
+- **Sistem Indikator Status Warna**
+  - **Hijau (AMAN):** Produk terdaftar secara resmi dan statusnya aktif.
+  - **Kuning (KEDALUWARSA / CEK ULANG):** Produk terdaftar tetapi masa berlakunya sudah habis, atau membutuhkan perhatian khusus.
+  - **Merah (TIDAK TERDAFTAR):** Data produk tidak ditemukan di database BPOM (indikasi produk palsu atau ilegal).
+
+- **Menu Pengaturan (Settings)**
+  - Switch untuk mengaktifkan/mematikan getar (vibe feedback) saat scan berhasil.
+  - Switch untuk mengaktifkan/mematikan efek suara klik (beep click) saat barcode terdeteksi.
+  - Tombol **Bersihkan Cache & Riwayat** untuk menghapus semua data pencarian offline dari perangkat.
+  - Shortcut link resmi untuk pengaduan konsumen (ULPK BPOM), disclaimer hukum, syarat ketentuan, dan tentang aplikasi.
+
+- **Riwayat & Cache Offline**
+  - Menyimpan otomatis semua hasil pengecekan secara lokal menggunakan database **Hive**.
+  - Jika Anda sedang offline (tidak ada sinyal internet), produk yang sudah pernah di-scan sebelumnya tetap bisa dibuka datanya dari cache lokal.
+
+- **Edukasi & Portal Berita BPOM**
+  - Panduan lengkap cara membaca kode registrasi BPOM (NA/MD/ML/TR/TI/DKL).
+  - Berita terupdate yang di-scrape langsung dari web portal berita `pom.go.id/berita` (informasi recall produk merkuri, sirup EG, press release, dll).
 
 ---
 
-## 🚀 How to Run the Project
+## Cara Menjalankan Projek
 
-### Prerequisites
-- Flutter SDK (Channel stable, version 3.19.0+)
-- Android SDK installed (Target 34, compile 36)
+### Prasyarat
+- Flutter SDK (versi stable terbaru)
+- Android SDK (minSdk 21, compileSdk 36)
 
-### 1. Resolve Dependencies
+### 1. Ambil Dependensi
 ```bash
 flutter pub get
 ```
 
 ### 2. Generate Hive Adapters
-Run build runner to generate the database serialization files:
+Jalankan build runner untuk membuat file serializer database lokal (g.dart):
 ```bash
 flutter pub run build_runner build --delete-conflicting-outputs
 ```
 
-### 3. Run on Device / Emulator
-Ensure your emulator (e.g. Pixel 10 API 30+) is booted, then run:
+### 3. Run ke Device / Emulator
+Pastikan handphone atau emulator sudah tercolok dan terbaca, lalu jalankan:
 ```bash
 flutter run
 ```
 
-### 4. Build Release APK
-To package the app for installation:
+### 4. Build APK Release
+Untuk membuat paket installer APK versi rilis yang siap dipublikasikan:
 ```bash
 flutter build apk --release
 ```
 
 ---
 
-## 🔒 Disclaimer
-This app is an independent product verification tool and has no official affiliation with the Food and Drug Authority of the Republic of Indonesia (Badan Pengawas Obat dan Makanan RI). All data displayed is queried in real-time from the public search portal.
+## Catatan Teknis / Troubleshooting
+- **SSL Bypass**: Portal resmi BPOM seringkali memicu error sertifikat SSL (`unable to get local issuer certificate`) di perangkat native. Kami telah mengonfigurasi `badCertificateCallback` pada Dio HTTP adapter agar request tetap berjalan mulus.
+- **Android 11 Package Queries**: Kami menambahkan deklarasi tag `<queries>` untuk skema `http` dan `https` di dalam `AndroidManifest.xml` agar plugin `url_launcher` tidak error/blank saat membuka tautan eksternal di Android versi baru.
