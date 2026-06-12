@@ -8,11 +8,11 @@ With this application, users can scan product barcodes or input registration num
 
 ## 🌟 Key Features
 
-1. **Barcode Scanner**
-   - Live camera scanning using the `mobile_scanner` library.
-   - Supports EAN-13, EAN-8, QR Code, and Code128 formats.
-   - Flashlight toggle support.
-   - Fast manual entry fallback for codes that are scratched or unreadable.
+1. **Dual Barcode Scanner**
+   - **Live Camera Scanning**: High-speed camera reader using the `mobile_scanner` library (supporting EAN-13, EAN-8, QR Code, and Code128).
+   - **Gallery Image Import**: Select images directly from the device gallery using the `image_picker` package to decode barcodes and QR codes from photos.
+   - **Zoom Scale Multiplier**: Tap-to-magnify camera scale overlay toggling among `1.0x`, `2.0x`, and `3.0x` zoom levels to capture small or distant barcodes effortlessly.
+   - **Torch & Manual Entry**: Quick toggle flashlight support and manual keyboard lookup fallbacks.
 
 2. **Real-time BPOM Product Lookup**
    - Automatically queries the primary BPOM public API.
@@ -31,8 +31,14 @@ With this application, users can scan product barcodes or input registration num
    - Clear individual items or purge history completely.
 
 5. **Information & Educational Portal**
-   - "Cara Baca Kemasan": illustrated step-by-step guides on reading BPOM codes (NA/NB/NC cosmetics, MD/ML foods, TR/TI traditional medicines, etc.).
+   - "Cara Baca Kemasan": Illustrated step-by-step guides on reading BPOM codes (NA/NB/NC cosmetics, MD/ML foods, TR/TI traditional medicines, etc.).
    - "Produk Berbahaya": Dynamic news scraper that fetches and parses the latest press releases, toxic cosmetics reports, recall logs, and official warnings directly from the BPOM Portal (pom.go.id/berita), with an offline fallback cache.
+
+6. **Settings Panel (Pengaturan)**
+   - Grouped user preferences dashboard replacing static About layouts.
+   - Toggles to enable/disable tactile vibration feedback and clicking sound feedback upon scanning success.
+   - Database administration tools to purge search cache and erase all scan history logs.
+   - Legal disclaimer, Privacy policies, app credits, and official ULPK complaint contact shortcuts.
 
 ---
 
