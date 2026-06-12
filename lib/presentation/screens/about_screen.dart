@@ -7,10 +7,23 @@ import '../../core/constants/app_colors.dart';
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
-  Future<void> _launchUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+  Future<void> _launchUrl(BuildContext context, String url) async {
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        throw Exception('Tidak ada aplikasi browser yang terpasang.');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal membuka halaman: $e'),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
     }
   }
 
@@ -106,7 +119,7 @@ class AboutScreen extends StatelessWidget {
             
             // CTA Button for complaint
             ElevatedButton.icon(
-              onPressed: () => _launchUrl(ApiConstants.bpomComplaintUrl),
+              onPressed: () => _launchUrl(context, ApiConstants.bpomComplaintUrl),
               icon: const Icon(Icons.support_agent_rounded),
               label: const Text('Hubungi Pengaduan BPOM (ULPK)'),
               style: ElevatedButton.styleFrom(

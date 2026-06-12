@@ -12,10 +12,23 @@ import '../providers/news_provider.dart';
 class InfoScreen extends ConsumerWidget {
   const InfoScreen({super.key});
 
-  Future<void> _launchUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+  Future<void> _launchUrl(BuildContext context, String url) async {
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        throw Exception('Tidak ada aplikasi browser yang terpasang.');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal membuka tautan: $e'),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
     }
   }
 
@@ -352,7 +365,7 @@ class InfoScreen extends ConsumerWidget {
                       ),
                     ),
                     TextButton(
-                      onPressed: () => _launchUrl(ApiConstants.bpomNewsUrl),
+                      onPressed: () => _launchUrl(context, ApiConstants.bpomNewsUrl),
                       child: const Text('Buka Portal'),
                     ),
                   ],
@@ -400,7 +413,7 @@ class InfoScreen extends ConsumerWidget {
           clipBehavior: Clip.antiAlias,
           color: cardBgColor,
           child: InkWell(
-            onTap: () => _launchUrl(news.url),
+            onTap: () => _launchUrl(context, news.url),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

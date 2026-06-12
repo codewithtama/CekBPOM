@@ -88,13 +88,20 @@ class _ResultScreenState extends ConsumerState<ResultScreen> with SingleTickerPr
   }
 
   Future<void> _reportProduct(ProductModel product) async {
-    final complaintUri = Uri.parse(ApiConstants.bpomComplaintUrl);
-    if (await canLaunchUrl(complaintUri)) {
-      await launchUrl(complaintUri, mode: LaunchMode.externalApplication);
-    } else {
+    try {
+      final complaintUri = Uri.parse(ApiConstants.bpomComplaintUrl);
+      if (await canLaunchUrl(complaintUri)) {
+        await launchUrl(complaintUri, mode: LaunchMode.externalApplication);
+      } else {
+        throw Exception('Tidak ada aplikasi browser yang terpasang.');
+      }
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tidak dapat membuka link pengaduan.')),
+          SnackBar(
+            content: Text('Gagal membuka halaman pengaduan: $e'),
+            backgroundColor: AppColors.danger,
+          ),
         );
       }
     }
