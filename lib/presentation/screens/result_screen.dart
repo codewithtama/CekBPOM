@@ -10,6 +10,7 @@ import '../../data/models/product_model.dart';
 import '../providers/scan_provider.dart';
 import '../widgets/product_card.dart';
 import '../widgets/loading_overlay.dart';
+import '../../core/utils/pdf_generator.dart';
 
 class ResultScreen extends ConsumerStatefulWidget {
   final String scanCode;
@@ -154,7 +155,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> with SingleTickerPr
                         child: OutlinedButton.icon(
                           onPressed: () => _shareResult(product),
                           icon: const Icon(Icons.share_rounded),
-                          label: const Text('Bagikan Hasil'),
+                          label: const Text('Bagikan'),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
@@ -163,15 +164,13 @@ class _ResultScreenState extends ConsumerState<ResultScreen> with SingleTickerPr
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 12),
                       Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _reportProduct(product),
-                          icon: const Icon(Icons.report_gmailerrorred_rounded),
-                          label: const Text('Laporkan Produk'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.danger,
-                            foregroundColor: Colors.white,
+                        child: OutlinedButton.icon(
+                          onPressed: () => PdfGenerator.generateAndPrintReport(product),
+                          icon: const Icon(Icons.picture_as_pdf_rounded),
+                          label: const Text('Ekspor PDF'),
+                          style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -180,6 +179,20 @@ class _ResultScreenState extends ConsumerState<ResultScreen> with SingleTickerPr
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: () => _reportProduct(product),
+                    icon: const Icon(Icons.report_gmailerrorred_rounded),
+                    label: const Text('Laporkan Produk Berbahaya'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.danger,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 24),
                 ],

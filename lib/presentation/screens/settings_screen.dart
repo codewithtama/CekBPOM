@@ -7,6 +7,7 @@ import '../../core/constants/api_constants.dart';
 import '../../core/constants/app_colors.dart';
 import '../providers/settings_provider.dart';
 import '../providers/history_provider.dart';
+import 'about_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -79,74 +80,7 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showAboutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 16),
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.verified_user_rounded,
-                  color: AppColors.primary,
-                  size: 40,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'CekBPOM',
-                style: GoogleFonts.lexend(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const Text(
-                'Versi 1.0.0 (Release)',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Aplikasi pemindai barcode produk & nomor registrasi BPOM. Dirancang dengan mengedepankan performa tinggi, kemudahan navigasi, dan visual premium.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, height: 1.4),
-              ),
-              const SizedBox(height: 20),
-              const Divider(),
-              const SizedBox(height: 8),
-              const Text(
-                '© 2026 CekBPOM App. All rights reserved.',
-                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                'Tutup',
-                style: GoogleFonts.lexend(color: AppColors.textSecondary),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
+
 
   void _confirmClearData(BuildContext context, WidgetRef ref) {
     showDialog(
@@ -337,7 +271,12 @@ class SettingsScreen extends ConsumerWidget {
           _buildSettingsCard(
             children: [
               ListTile(
-                onTap: () => _showAboutDialog(context),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AboutScreen()),
+                  );
+                },
                 leading: const Icon(Icons.info_outline_rounded, color: AppColors.primary),
                 title: Text(
                   'Tentang CekBPOM',

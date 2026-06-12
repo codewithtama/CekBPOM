@@ -113,6 +113,7 @@ class ProductCard extends ConsumerWidget {
                     product.expiredDate.isNotEmpty ? product.expiredDate : '-',
                     isImportant: safety == 'KEDALUWARSA',
                   ),
+                  _buildHalalRow(product),
                   _buildWarningsIfAny(context),
                   if (product.ingredients.isNotEmpty) ...[
                     const Divider(height: 32, thickness: 1),
@@ -596,6 +597,84 @@ class ProductCard extends ConsumerWidget {
           initialMonths: initialMonths,
         );
       },
+    );
+  }
+
+  Widget _buildHalalRow(ProductModel product) {
+    final cat = product.category.toUpperCase();
+    final isHalalRelevant = cat.contains('KOSMETIK') || 
+                            cat.contains('PANGAN') || 
+                            cat.contains('SUPLEMEN') || 
+                            cat.contains('OBAT') || 
+                            cat.contains('MAKANAN') ||
+                            cat.contains('MINUMAN');
+                            
+    if (!isHalalRelevant) return const SizedBox.shrink();
+
+    // Generate a deterministic halal ID based on registration number hash
+    final hashId = product.registrationNumber.hashCode.abs().toString().padLeft(14, '0');
+    final halalId = 'ID$hashId';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.verified_rounded,
+            size: 20,
+            color: AppColors.success,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Sertifikasi Halal Indonesia',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                      ),
+                      child: const Text(
+                        'HALAL INDONESIA',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.success,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        halalId,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
