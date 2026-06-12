@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/constants/app_colors.dart';
+import '../../data/models/news_model.dart';
+import '../providers/news_provider.dart';
 
-class InfoScreen extends StatelessWidget {
+class InfoScreen extends ConsumerWidget {
   const InfoScreen({super.key});
 
   Future<void> _launchUrl(String url) async {
@@ -15,7 +20,7 @@ class InfoScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -35,7 +40,7 @@ class InfoScreen extends StatelessWidget {
         body: TabBarView(
           children: [
             _buildCaraBacaTab(),
-            _buildProdukBerbahayaTab(),
+            _buildProdukBerbahayaTab(context, ref),
           ],
         ),
       ),
@@ -150,125 +155,364 @@ class InfoScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProdukBerbahayaTab() {
-    // Top warnings from BPOM database
-    final List<Map<String, String>> alerts = [
-      {
-        'title': 'Peringatan Kosmetik Mengandung Merkuri & Hidrokuinon',
-        'date': 'Mei 2026',
-        'source': 'Public Warning BPOM RI',
-        'desc': 'BPOM merilis daftar kosmetik pemutih wajah ilegal yang terbukti mengandung bahan berbahaya Merkuri (Mercury) dan Hidrokuinon tingkat tinggi yang memicu kanker kulit.',
-      },
-      {
-        'title': 'Penarikan Obat Sirop Tercemar Etilen Glikol (EG)',
-        'date': 'Februari 2026',
-        'source': 'Klarifikasi BPOM',
-        'desc': 'Pengawasan ketat terhadap obat sirop anak. Beberapa bets produk ditarik karena ditemukan cemaran EG/DEG melebihi ambang batas aman yang memicu gagal ginjal akut.',
-      },
-      {
-        'title': 'Suplemen Tradisional Mengandung Bahan Kimia Obat (BKO)',
-        'date': 'Desember 2025',
-        'source': 'Siaran Pers BPOM',
-        'desc': 'Hasil sampling menemukan jamu pegal linu dan penambah stamina ilegal dicampuri Bahan Kimia Obat parasetamol, sildenafil, dan dexamethasone tanpa izin edar.',
-      },
-      {
-        'title': 'Kopi Kemasan Mengandung Sildenafil & Tadalafil',
-        'date': 'Oktober 2025',
-        'source': 'Klarifikasi BPOM',
-        'desc': 'BPOM menyita produk kopi serbuk tradisional yang dicampuri obat kuat sildenafil secara ilegal. Dapat memicu serangan jantung fatal.',
-      },
-    ];
+  Widget _buildProdukBerbahayaTab(BuildContext context, WidgetRef ref) {
+    final newsAsync = ref.watch(newsProvider);
 
-    return SingleChildScrollView(
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(newsProvider);
+        try {
+          await ref.read(newsProvider.future);
+        } catch (_) {}
+      },
+      child: newsAsync.when(
+        data: (newsList) {
+          if (newsList.isEmpty) {
+            return _buildEmptyState();
+          }
+          return _buildNewsList(newsList);
+        },
+        loading: () => _buildShimmerLoading(),
+        error: (error, stack) {
+          return _buildErrorState(error, ref);
+        },
+      ),
+    );
+  }
+
+  Widget _buildShimmerLoading() {
+    return ListView.builder(
       padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Rilis Publik / Recall Terbaru',
-                style: GoogleFonts.lexend(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              TextButton(
-                onPressed: () => _launchUrl(ApiConstants.bpomNewsUrl),
-                child: const Text('Lihat Semua'),
+      itemCount: 3,
+      itemBuilder: (context, index) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 20),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-          const Text(
-            'Daftar rilis peringatan publik resmi BPOM terkait temuan produk obat, kosmetika, dan pangan berbahaya.',
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.textSecondary,
+          child: Shimmer.fromColors(
+            baseColor: Colors.grey[300]!,
+            highlightColor: Colors.grey[100]!,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Image placeholder
+                Container(
+                  height: 180,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Meta info row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(width: 80, height: 12, color: Colors.white),
+                          Container(width: 60, height: 12, color: Colors.white),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      // Title placeholder
+                      Container(width: double.infinity, height: 16, color: Colors.white),
+                      const SizedBox(height: 8),
+                      Container(width: 200, height: 16, color: Colors.white),
+                      const SizedBox(height: 12),
+                      // Description placeholder
+                      Container(width: double.infinity, height: 12, color: Colors.white),
+                      const SizedBox(height: 6),
+                      Container(width: double.infinity, height: 12, color: Colors.white),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 20),
-          
-          ...alerts.map((alert) => Card(
-            elevation: 0,
-            margin: const EdgeInsets.only(bottom: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: const BorderSide(color: AppColors.dangerLight, width: 1.5),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.newspaper_rounded,
+              size: 64,
+              color: AppColors.textSecondary,
             ),
-            clipBehavior: Clip.antiAlias,
-            child: Container(
-              color: AppColors.dangerLight.withValues(alpha: 0.1),
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        alert['source']!,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.danger,
+            const SizedBox(height: 16),
+            Text(
+              'Tidak ada berita terbaru',
+              style: GoogleFonts.lexend(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Belum ada rilis berita dari BPOM saat ini.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(Object error, WidgetRef ref) {
+    return Center(
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.wifi_off_rounded,
+              size: 64,
+              color: AppColors.danger,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Gagal Memuat Berita',
+              style: GoogleFonts.lexend(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error.toString().replaceAll('Exception: ', ''),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () => ref.invalidate(newsProvider),
+              icon: const Icon(Icons.refresh_rounded, size: 20),
+              label: const Text('Coba Lagi'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNewsList(List<NewsModel> newsList) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(20),
+      itemCount: newsList.length + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          // Header info
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16, left: 4, right: 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Rilis Publik / Berita Terbaru',
+                      style: GoogleFonts.lexend(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => _launchUrl(ApiConstants.bpomNewsUrl),
+                      child: const Text('Buka Portal'),
+                    ),
+                  ],
+                ),
+                const Text(
+                  'Informasi rilis, press release, edukasi keamanan, dan penarikan produk resmi langsung dari portal berita BPOM RI.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final news = newsList[index - 1];
+        
+        // Determine whether this news is likely a warning or recall (danger alert) or a standard news
+        final isWarning = news.title.toLowerCase().contains('peringatan') ||
+            news.title.toLowerCase().contains('tarik') ||
+            news.title.toLowerCase().contains('bahaya') ||
+            news.title.toLowerCase().contains('cemaran') ||
+            news.title.toLowerCase().contains('ilegal') ||
+            news.title.toLowerCase().contains('bko') ||
+            news.title.toLowerCase().contains('obat sirop') ||
+            news.imageUrl.isEmpty; // fallback items have no images
+
+        final cardBorderColor = isWarning 
+            ? AppColors.danger.withValues(alpha: 0.6) 
+            : AppColors.border.withValues(alpha: 0.7);
+            
+        final cardBgColor = isWarning
+            ? AppColors.dangerLight.withValues(alpha: 0.1)
+            : AppColors.surface;
+
+        return Card(
+          elevation: 0,
+          margin: const EdgeInsets.only(bottom: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: cardBorderColor, width: isWarning ? 1.5 : 1),
+          ),
+          clipBehavior: Clip.antiAlias,
+          color: cardBgColor,
+          child: InkWell(
+            onTap: () => _launchUrl(news.url),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (news.imageUrl.isNotEmpty)
+                  CachedNetworkImage(
+                    imageUrl: news.imageUrl,
+                    height: 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      height: 180,
+                      color: Colors.grey[200],
+                      child: const Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                       ),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      height: 180,
+                      color: Colors.grey[200],
+                      child: const Center(
+                        child: Icon(Icons.broken_image_rounded, color: AppColors.textSecondary),
+                      ),
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isWarning 
+                                  ? AppColors.dangerLight 
+                                  : AppColors.primaryLight,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              isWarning ? 'PERINGATAN / ALERT' : 'BERITA BPOM',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: isWarning ? AppColors.danger : AppColors.primary,
+                              ),
+                            ),
+                          ),
+                          if (news.date.isNotEmpty)
+                            Text(
+                              news.date,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
                       Text(
-                        alert['date']!,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w500,
+                        news.title,
+                        style: GoogleFonts.lexend(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: AppColors.textPrimary,
+                          height: 1.3,
                         ),
+                      ),
+                      if (news.description.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          news.description,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            'Baca Selengkapnya',
+                            style: GoogleFonts.lexend(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: isWarning ? AppColors.danger : AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 16,
+                            color: isWarning ? AppColors.danger : AppColors.primary,
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    alert['title']!,
-                    style: GoogleFonts.lexend(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    alert['desc']!,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textPrimary,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          )),
-        ],
-      ),
+          ),
+        );
+      },
     );
   }
 }
