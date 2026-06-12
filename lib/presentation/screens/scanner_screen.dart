@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../core/constants/app_colors.dart';
+import '../providers/settings_provider.dart';
 import 'result_screen.dart';
 
-class ScannerScreen extends StatefulWidget {
+class ScannerScreen extends ConsumerStatefulWidget {
   const ScannerScreen({super.key});
 
   @override
-  State<ScannerScreen> createState() => _ScannerScreenState();
+  ConsumerState<ScannerScreen> createState() => _ScannerScreenState();
 }
 
-class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProviderStateMixin {
+class _ScannerScreenState extends ConsumerState<ScannerScreen> with SingleTickerProviderStateMixin {
   final MobileScannerController _cameraController = MobileScannerController();
   bool _isScanCompleted = false;
   late AnimationController _scannerAnimationController;
@@ -54,11 +58,75 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
           _isScanCompleted = true;
         });
 
+        // Trigger user feedback based on settings
+        final settings = ref.read(settingsProvider);
+        if (settings.enableVibration) {
+          HapticFeedback.vibrate();
+        }
+        if (settings.enableSound) {
+          SystemSound.play(SystemSoundType.click);
+        }
+
         // Navigate directly to result screen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => ResultScreen(scanCode: rawCode),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _scanImageFromGallery() async {
+    if (_isScanCompleted) return;
+
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+      
+      if (image == null) return;
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                ),
+                SizedBox(width: 16),
+                Text('Menganalisis gambar...'),
+              ],
+            ),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+
+      final bool isSuccess = await _cameraController.analyzeImage(image.path);
+
+      if (!isSuccess) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Tidak menemukan kode BPOM/barcode pada gambar.',
+                style: GoogleFonts.lexend(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+              backgroundColor: AppColors.danger,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menganalisis gambar: $e'),
+            backgroundColor: AppColors.danger,
           ),
         );
       }
@@ -223,20 +291,28 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    // Torch control button
-                    IconButton(
-                      icon: ValueListenableBuilder<TorchState>(
-                        valueListenable: _cameraController.torchState,
-                        builder: (context, state, child) {
-                          switch (state) {
-                            case TorchState.off:
-                              return const Icon(Icons.flash_off_rounded, color: Colors.white);
-                            case TorchState.on:
-                              return const Icon(Icons.flash_on_rounded, color: AppColors.warning);
-                          }
-                        },
-                      ),
-                      onPressed: () => _cameraController.toggleTorch(),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.photo_library_rounded, color: Colors.white),
+                          tooltip: 'Pilih dari Galeri',
+                          onPressed: _scanImageFromGallery,
+                        ),
+                        IconButton(
+                          icon: ValueListenableBuilder<TorchState>(
+                            valueListenable: _cameraController.torchState,
+                            builder: (context, state, child) {
+                              switch (state) {
+                                case TorchState.off:
+                                  return const Icon(Icons.flash_off_rounded, color: Colors.white);
+                                case TorchState.on:
+                                  return const Icon(Icons.flash_on_rounded, color: AppColors.warning);
+                              }
+                            },
+                          ),
+                          onPressed: () => _cameraController.toggleTorch(),
+                        ),
+                      ],
                     ),
                   ],
                 ),

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/history_screen.dart';
 import 'presentation/screens/info_screen.dart';
-import 'presentation/screens/about_screen.dart';
+import 'presentation/screens/settings_screen.dart';
 import 'presentation/providers/history_provider.dart';
 import 'core/theme/app_theme.dart';
 
@@ -21,7 +21,7 @@ class _CekBpomAppState extends ConsumerState<CekBpomApp> {
     const HomeScreen(),
     const HistoryScreen(),
     const InfoScreen(),
-    const AboutScreen(),
+    const SettingsScreen(),
   ];
 
   @override
@@ -61,8 +61,9 @@ class _CekBpomAppState extends ConsumerState<CekBpomApp> {
               label: 'Info',
             ),
             const BottomNavigationBarItem(
-              icon: Icon(Icons.help_outline_rounded),
-              label: 'Tentang',
+              icon: Icon(Icons.settings_outlined),
+              activeIcon: Icon(Icons.settings_rounded),
+              label: 'Pengaturan',
             ),
           ],
         ),
