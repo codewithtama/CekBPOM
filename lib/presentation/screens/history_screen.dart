@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
+import '../../data/models/scan_history_model.dart';
 import '../providers/history_provider.dart';
+import '../providers/pao_provider.dart';
 import '../widgets/scan_history_tile.dart';
 import 'result_screen.dart';
+import 'comparison_screen.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
@@ -16,6 +19,8 @@ class HistoryScreen extends ConsumerStatefulWidget {
 class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _isComparisonMode = false;
+  final List<String> _selectedCompareCodes = [];
 
   @override
   void dispose() {
@@ -81,7 +86,20 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       appBar: AppBar(
         title: const Text('Riwayat Cek'),
         actions: [
-          if (historyList.isNotEmpty)
+          if (historyList.isNotEmpty) ...[
+            IconButton(
+              icon: Icon(
+                _isComparisonMode ? Icons.close_rounded : Icons.compare_arrows_rounded,
+                color: _isComparisonMode ? AppColors.danger : AppColors.primary,
+              ),
+              tooltip: _isComparisonMode ? 'Batal Bandingkan' : 'Bandingkan Produk',
+              onPressed: () {
+                setState(() {
+                  _isComparisonMode = !_isComparisonMode;
+                  _selectedCompareCodes.clear();
+                });
+              },
+            ),
             IconButton(
               icon: const Icon(
                 Icons.delete_sweep_rounded,
@@ -90,6 +108,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               tooltip: 'Hapus Semua',
               onPressed: _confirmClearAll,
             ),
+          ],
         ],
       ),
       body: Column(
@@ -165,20 +184,63 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                     itemCount: filteredList.length,
                     itemBuilder: (context, index) {
                       final item = filteredList[index];
+                      final isSelected = _selectedCompareCodes.contains(item.product.registrationNumber);
+                      final paoData = ref.watch(paoProvider).records[item.product.registrationNumber];
+
                       return ScanHistoryTile(
                         key: ValueKey(item.key),
                         history: item,
+                        isComparisonMode: _isComparisonMode,
+                        isSelected: isSelected,
+                        paoData: paoData,
+                        onSelectChanged: (val) {
+                          setState(() {
+                            if (val == true) {
+                              if (_selectedCompareCodes.length >= 2) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Maksimal membandingkan 2 produk.'),
+                                    backgroundColor: AppColors.warning,
+                                  ),
+                                );
+                                return;
+                              }
+                              _selectedCompareCodes.add(item.product.registrationNumber);
+                            } else {
+                              _selectedCompareCodes.remove(item.product.registrationNumber);
+                            }
+                          });
+                        },
                         onTap: () {
-                          // Re-open results screen using cached record in model
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ResultScreen(
-                                scanCode: item.product.registrationNumber,
-                                cachedProduct: item.product,
+                          if (_isComparisonMode) {
+                            setState(() {
+                              if (isSelected) {
+                                _selectedCompareCodes.remove(item.product.registrationNumber);
+                              } else {
+                                if (_selectedCompareCodes.length >= 2) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Maksimal membandingkan 2 produk.'),
+                                      backgroundColor: AppColors.warning,
+                                    ),
+                                  );
+                                  return;
+                                }
+                                _selectedCompareCodes.add(item.product.registrationNumber);
+                              }
+                            });
+                          } else {
+                            // Re-open results screen using cached record in model
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ResultScreen(
+                                  scanCode: item.product.registrationNumber,
+                                  cachedProduct: item.product,
+                                ),
                               ),
-                            ),
-                          );
+                            );
+                          }
                         },
                         onDelete: () {
                           ref
@@ -189,6 +251,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                     },
                   ),
           ),
+          if (_isComparisonMode && historyList.isNotEmpty)
+            _buildComparisonBottomBar(historyList),
         ],
       ),
     );
@@ -267,6 +331,98 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               style: const TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildComparisonBottomBar(List<ScanHistoryModel> historyList) {
+    final canCompare = _selectedCompareCodes.length == 2;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
+        ],
+        border: const Border(top: BorderSide(color: AppColors.border, width: 0.5)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Bandingkan Produk',
+                    style: GoogleFonts.lexend(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Dipilih: ${_selectedCompareCodes.length} / 2 produk',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: canCompare ? AppColors.success : AppColors.textSecondary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ElevatedButton(
+              onPressed: canCompare
+                  ? () {
+                      ScanHistoryModel? itemA;
+                      ScanHistoryModel? itemB;
+                      for (final item in historyList) {
+                        if (item.product.registrationNumber == _selectedCompareCodes[0]) {
+                          itemA = item;
+                        }
+                        if (item.product.registrationNumber == _selectedCompareCodes[1]) {
+                          itemB = item;
+                        }
+                      }
+                      
+                      final finalA = itemA;
+                      final finalB = itemB;
+                      if (finalA != null && finalB != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ComparisonScreen(
+                              productA: finalA.product,
+                              productB: finalB.product,
+                            ),
+                          ),
+                        );
+                      }
+                    }
+                  : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: Text(
+                'Bandingkan',
+                style: GoogleFonts.lexend(fontWeight: FontWeight.bold),
               ),
             ),
           ],

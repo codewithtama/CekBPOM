@@ -35,7 +35,7 @@ class InfoScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Informasi & Edukasi'),
@@ -43,10 +43,11 @@ class InfoScreen extends ConsumerWidget {
             labelColor: AppColors.primary,
             unselectedLabelColor: AppColors.textSecondary,
             indicatorColor: AppColors.primary,
-            labelStyle: GoogleFonts.lexend(fontWeight: FontWeight.bold, fontSize: 14),
+            labelStyle: GoogleFonts.lexend(fontWeight: FontWeight.bold, fontSize: 13),
             tabs: const [
-              Tab(text: 'Cara Baca Kemasan'),
-              Tab(text: 'Produk Berbahaya'),
+              Tab(text: 'Cara Baca'),
+              Tab(text: 'Rilis BPOM'),
+              Tab(text: 'Kamus Zat'),
             ],
           ),
         ),
@@ -54,6 +55,7 @@ class InfoScreen extends ConsumerWidget {
           children: [
             _buildCaraBacaTab(),
             _buildProdukBerbahayaTab(context, ref),
+            const BannedSubstancesKamusTab(),
           ],
         ),
       ),
@@ -533,6 +535,268 @@ class InfoScreen extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class BannedSubstancesKamusTab extends StatefulWidget {
+  const BannedSubstancesKamusTab({super.key});
+
+  @override
+  State<BannedSubstancesKamusTab> createState() => _BannedSubstancesKamusTabState();
+}
+
+class _BannedSubstancesKamusTabState extends State<BannedSubstancesKamusTab> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  final List<Map<String, String>> _substances = [
+    {
+      'name': 'Merkuri (Mercury / Calomel)',
+      'risk': 'SANGAT TINGGI (BAHAYA)',
+      'desc': 'Logam berat cair berwarna perak yang sering disalahgunakan untuk pemutih kulit instan.',
+      'health': 'Memicu kanker kulit (karsinogenik), merusak saraf pusat (tremor, insomnia), merusak ginjal, serta menyebabkan cacat lahir pada janin.',
+      'bpom': 'Dilarang keras (zero tolerance) untuk semua kosmetika dan makanan.'
+    },
+    {
+      'name': 'Hidrokuinon (Hydroquinone)',
+      'risk': 'TINGGI (PERINGATAN KERAS)',
+      'desc': 'Bahan kimia aktif pemutih kulit yang menghambat pembentukan melanin.',
+      'health': 'Menyebabkan okronosis eksogen (kulit menjadi hitam kebiruan permanen), iritasi parah, kulit terbakar jika terkena matahari, dan meningkatkan risiko kanker.',
+      'bpom': 'Hanya boleh digunakan sebagai obat keras dengan resep dokter (maksimal 2% pada produk medis), dilarang dalam kosmetik bebas.'
+    },
+    {
+      'name': 'Etilen Glikol / Dietilen Glikol (EG & DEG)',
+      'risk': 'SANGAT TINGGI (BAHAYA)',
+      'desc': 'Cemaran pelarut gliserin/propilen glikol yang sering ditemukan dalam obat sirup berkualitas rendah.',
+      'health': 'Memicu kerusakan ginjal akut secara cepat (Gagal Ginjal Akut Progresif Atipikal), asidosis metabolik, koma, hingga kematian terutama pada anak-anak.',
+      'bpom': 'Batas cemaran maksimal sangat ketat (≤ 0.1%), melebihi batas akan ditarik dari peredaran.'
+    },
+    {
+      'name': 'Bahan Kimia Obat (Steroid / Deksametason)',
+      'risk': 'TINGGI (BAHAYA)',
+      'desc': 'Obat anti-inflamasi keras yang sering dicampurkan secara ilegal ke dalam jamu pegal linu atau obat tradisional.',
+      'health': 'Menyebabkan Cushing Syndrome (wajah membulat/moon face), osteoporosis, kerusakan lambung (pendarahan), hipertensi, diabetes melitus, dan ketergantungan obat.',
+      'bpom': 'Dilarang keras dicampurkan dalam jamu, obat tradisional, atau suplemen.'
+    },
+    {
+      'name': 'Rhodamin B',
+      'risk': 'SANGAT TINGGI (BAHAYA)',
+      'desc': 'Pewarna sintetik berbentuk serbuk merah keunguan untuk industri kertas/tekstil.',
+      'health': 'Bersifat karsinogenik (memicu kanker), merusak fungsi hati (hepatotoksik), dan menyebabkan iritasi parah pada saluran pencernaan.',
+      'bpom': 'Dilarang keras untuk produk pangan, minuman, obat-obatan, dan kosmetika.'
+    },
+    {
+      'name': 'Formalin (Formaldehyde)',
+      'risk': 'SANGAT TINGGI (BAHAYA)',
+      'desc': 'Pengawet industri untuk mayat, kayu, dan lem yang sering disalahgunakan untuk mengawetkan makanan (tahu, mi basah, ikan).',
+      'health': 'Menyebabkan kanker saluran pernapasan (nasofaring), kerusakan parah pada dinding lambung, muntah darah, gagal ginjal, dan kerusakan sel akut.',
+      'bpom': 'Dilarang keras digunakan sebagai pengawet pangan.'
+    },
+    {
+      'name': 'Boraks (Asam Borat / Pijer)',
+      'risk': 'SANGAT TINGGI (BAHAYA)',
+      'desc': 'Bahan solder, pengawet kayu, dan antiseptik yang disalahgunakan untuk pengenyal bakso, kerupuk, atau mi.',
+      'health': 'Menumpuk di otak, hati, dan ginjal. Menyebabkan demam, depresi mental, kerusakan testis (kemandulan), dan kematian jika terkonsumsi berlebih.',
+      'bpom': 'Dilarang keras ditambahkan ke dalam makanan.'
+    },
+    {
+      'name': 'Sildenafil Sitrat / Tadalafil',
+      'risk': 'TINGGI (BAHAYA)',
+      'desc': 'Zat aktif obat disfungsi ereksi (obat kuat) yang dicampur ilegal ke dalam kopi kejantanan atau jamu pria.',
+      'health': 'Memicu serangan jantung mendadak, stroke fatal, kehilangan penglihatan/pendengaran, dan penurunan tekanan darah drastis.',
+      'bpom': 'Dilarang keras dicampur ke dalam jamu atau suplemen pangan.'
+    },
+    {
+      'name': 'Timbal (Lead / Pb)',
+      'risk': 'TINGGI (PERINGATAN)',
+      'desc': 'Logam berat beracun yang sering mengotori produk kosmetik lipstik atau eye shadow murah/ilegal.',
+      'health': 'Menyebabkan kerusakan sistem saraf pusat, penurunan kecerdasan anak, gangguan ginjal, anemia, dan gangguan sistem reproduksi.',
+      'bpom': 'Batas cemaran kosmetik maksimal 20 ppm.'
+    },
+    {
+      'name': 'Asam Salisilat (Salicylic Acid)',
+      'risk': 'PERINGATAN (BATAS KADAR)',
+      'desc': 'Asam beta-hidroksi (BHA) yang umum digunakan untuk obat jerawat dan pengelupasan kulit.',
+      'health': 'Penggunaan melebihi kadar aman memicu iritasi ekstrem, kulit mengelupas parah, rasa terbakar, dan keracunan salisilat jika diserap tubuh secara berlebihan.',
+      'bpom': 'Batas aman kosmetik tanpa bilas maksimal 2.0%, dilarang untuk anak di bawah 3 tahun.'
+    }
+  ];
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filtered = _substances.where((sub) {
+      final name = sub['name']!.toLowerCase();
+      final desc = sub['desc']!.toLowerCase();
+      final health = sub['health']!.toLowerCase();
+      final query = _searchQuery.toLowerCase();
+      return name.contains(query) || desc.contains(query) || health.contains(query);
+    }).toList();
+
+    return Column(
+      children: [
+        // Search Input
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: TextField(
+            controller: _searchController,
+            onChanged: (val) {
+              setState(() {
+                _searchQuery = val;
+              });
+            },
+            decoration: InputDecoration(
+              hintText: 'Cari zat berbahaya...',
+              prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textSecondary),
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear_rounded, color: AppColors.textSecondary),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() {
+                          _searchQuery = '';
+                        });
+                      },
+                    )
+                  : null,
+              filled: true,
+              fillColor: AppColors.surface,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              ),
+              contentPadding: const EdgeInsets.symmetric(vertical: 0),
+            ),
+          ),
+        ),
+
+        // List View
+        Expanded(
+          child: filtered.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.search_off_rounded, size: 48, color: AppColors.textSecondary),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Tidak Ditemukan',
+                        style: GoogleFonts.lexend(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final item = filtered[index];
+                    final isHighRisk = item['risk']!.contains('SANGAT TINGGI') || item['risk']!.contains('BAHAYA');
+                    final riskColor = isHighRisk ? AppColors.danger : AppColors.warning;
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+                      ),
+                      child: Theme(
+                        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                        child: ExpansionTile(
+                          iconColor: AppColors.primary,
+                          title: Text(
+                            item['name']!,
+                            style: GoogleFonts.lexend(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          subtitle: Container(
+                            margin: const EdgeInsets.only(top: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: riskColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              item['risk']!,
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: riskColor,
+                              ),
+                            ),
+                          ),
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16, top: 8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Divider(height: 1),
+                                  const SizedBox(height: 12),
+                                  _buildSubstanceDetailRow('Apa itu?', item['desc']!),
+                                  const SizedBox(height: 10),
+                                  _buildSubstanceDetailRow('Bahaya Kesehatan:', item['health']!, isDanger: true),
+                                  const SizedBox(height: 10),
+                                  _buildSubstanceDetailRow('Regulasi BPOM:', item['bpom']!, isSuccess: true),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSubstanceDetailRow(String label, String value, {bool isDanger = false, bool isSuccess = false}) {
+    Color valColor = AppColors.textPrimary;
+    if (isDanger) valColor = AppColors.danger;
+    if (isSuccess) valColor = AppColors.success;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 11,
+            color: AppColors.textSecondary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 12,
+            height: 1.4,
+            fontWeight: isDanger || isSuccess ? FontWeight.bold : FontWeight.normal,
+            color: valColor,
+          ),
+        ),
+      ],
     );
   }
 }

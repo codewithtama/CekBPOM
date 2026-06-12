@@ -116,6 +116,68 @@ class AboutScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
+
+            // Developer Card
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.code_rounded,
+                        color: AppColors.primary,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Pembuat Aplikasi',
+                            style: GoogleFonts.lexend(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Dimas Alfa Pratama',
+                            style: GoogleFonts.lexend(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            'Lead Fullstack Developer & Creator',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
             
             // CTA Button for complaint
             ElevatedButton.icon(

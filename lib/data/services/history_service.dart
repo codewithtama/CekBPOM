@@ -5,6 +5,7 @@ import '../models/scan_history_model.dart';
 
 class HistoryService {
   static const String boxName = 'scan_history';
+  static const String paoBoxName = 'pao_records';
 
   /// Initializes Hive and registers adapters
   Future<void> init() async {
@@ -20,13 +21,15 @@ class HistoryService {
       }
       
       await Hive.openBox<ScanHistoryModel>(boxName);
-      developer.log('Hive Scan History initialized successfully', name: 'HistoryService');
+      await Hive.openBox<Map>(paoBoxName);
+      developer.log('Hive Scan History and PAO records initialized successfully', name: 'HistoryService');
     } catch (e) {
       developer.log('Error initializing Hive', name: 'HistoryService', error: e);
     }
   }
 
   Box<ScanHistoryModel> get _box => Hive.box<ScanHistoryModel>(boxName);
+  Box<Map> get _paoBox => Hive.box<Map>(paoBoxName);
 
   /// Retrieves all scan history sorted by date (latest first)
   List<ScanHistoryModel> getHistory() {
@@ -70,6 +73,10 @@ class HistoryService {
   /// Deletes a specific history item by key
   Future<void> deleteHistoryItem(dynamic key) async {
     try {
+      final record = _box.get(key);
+      if (record != null) {
+        await deletePao(record.product.registrationNumber);
+      }
       await _box.delete(key);
       developer.log('Deleted scan history item with key: $key', name: 'HistoryService');
     } catch (e) {
@@ -81,7 +88,8 @@ class HistoryService {
   Future<void> clearHistory() async {
     try {
       await _box.clear();
-      developer.log('Cleared all scan history', name: 'HistoryService');
+      await clearAllPao();
+      developer.log('Cleared all scan history and PAO records', name: 'HistoryService');
     } catch (e) {
       developer.log('Error clearing scan history', name: 'HistoryService', error: e);
     }
@@ -107,5 +115,51 @@ class HistoryService {
       developer.log('Error querying cache', name: 'HistoryService', error: e);
     }
     return null;
+  }
+
+  /// Saves or updates PAO details for a product
+  Future<void> savePao(String regNumber, DateTime openedDate, int paoMonths) async {
+    try {
+      final key = regNumber.replaceAll(RegExp(r'\s+'), '').toUpperCase();
+      await _paoBox.put(key, {
+        'openedDate': openedDate.toIso8601String(),
+        'paoMonths': paoMonths,
+      });
+      developer.log('Saved PAO for product: $key', name: 'HistoryService');
+    } catch (e) {
+      developer.log('Error saving PAO', name: 'HistoryService', error: e);
+    }
+  }
+
+  /// Retrieves PAO details for a product
+  Map<dynamic, dynamic>? getPao(String regNumber) {
+    try {
+      final key = regNumber.replaceAll(RegExp(r'\s+'), '').toUpperCase();
+      return _paoBox.get(key);
+    } catch (e) {
+      developer.log('Error reading PAO', name: 'HistoryService', error: e);
+      return null;
+    }
+  }
+
+  /// Deletes PAO details for a product
+  Future<void> deletePao(String regNumber) async {
+    try {
+      final key = regNumber.replaceAll(RegExp(r'\s+'), '').toUpperCase();
+      await _paoBox.delete(key);
+      developer.log('Deleted PAO for product: $key', name: 'HistoryService');
+    } catch (e) {
+      developer.log('Error deleting PAO', name: 'HistoryService', error: e);
+    }
+  }
+
+  /// Clears all PAO details
+  Future<void> clearAllPao() async {
+    try {
+      await _paoBox.clear();
+      developer.log('Cleared all PAO records', name: 'HistoryService');
+    } catch (e) {
+      developer.log('Error clearing PAO records', name: 'HistoryService', error: e);
+    }
   }
 }

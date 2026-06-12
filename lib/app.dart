@@ -5,42 +5,35 @@ import 'presentation/screens/history_screen.dart';
 import 'presentation/screens/info_screen.dart';
 import 'presentation/screens/settings_screen.dart';
 import 'presentation/providers/history_provider.dart';
+import 'presentation/providers/tab_provider.dart';
 import 'core/theme/app_theme.dart';
 
-class CekBpomApp extends ConsumerStatefulWidget {
+class CekBpomApp extends ConsumerWidget {
   const CekBpomApp({super.key});
 
-  @override
-  ConsumerState<CekBpomApp> createState() => _CekBpomAppState();
-}
-
-class _CekBpomAppState extends ConsumerState<CekBpomApp> {
-  int _currentIndex = 0;
-
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const HistoryScreen(),
-    const InfoScreen(),
-    const SettingsScreen(),
+  static const List<Widget> _screens = [
+    HomeScreen(),
+    HistoryScreen(),
+    InfoScreen(),
+    SettingsScreen(),
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final historyList = ref.watch(historyProvider);
     final historyCount = historyList.length;
+    final currentIndex = ref.watch(tabIndexProvider);
 
     return MaterialApp(
       title: 'CekBPOM',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: Scaffold(
-        body: IndexedStack(index: _currentIndex, children: _screens),
+        body: IndexedStack(index: currentIndex, children: _screens),
         bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _currentIndex,
+          currentIndex: currentIndex,
           onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
+            ref.read(tabIndexProvider.notifier).state = index;
           },
           items: [
             const BottomNavigationBarItem(
