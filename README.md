@@ -32,7 +32,7 @@ With this application, users can scan product barcodes or input registration num
 
 5. **Information & Educational Portal**
    - "Cara Baca Kemasan": illustrated step-by-step guides on reading BPOM codes (NA/NB/NC cosmetics, MD/ML foods, TR/TI traditional medicines, etc.).
-   - "Produk Berbahaya": alerts of dangerous cosmetics, chemical-adulterated supplements, and toxic cough syrup warnings.
+   - "Produk Berbahaya": Dynamic news scraper that fetches and parses the latest press releases, toxic cosmetics reports, recall logs, and official warnings directly from the BPOM Portal (pom.go.id/berita), with an offline fallback cache.
 
 ---
 

@@ -17,23 +17,23 @@ class ProductCard extends StatelessWidget {
 
     if (safety == 'AMAN') {
       accentColor = AppColors.success;
-      gradientStart = AppColors.success.withOpacity(0.04);
-      gradientEnd = AppColors.success.withOpacity(0.01);
+      gradientStart = AppColors.success.withValues(alpha: 0.04);
+      gradientEnd = AppColors.success.withValues(alpha: 0.01);
     } else if (safety == 'KEDALUWARSA' || safety == 'PERLU DICEK') {
       accentColor = AppColors.warning;
-      gradientStart = AppColors.warning.withOpacity(0.04);
-      gradientEnd = AppColors.warning.withOpacity(0.01);
+      gradientStart = AppColors.warning.withValues(alpha: 0.04);
+      gradientEnd = AppColors.warning.withValues(alpha: 0.01);
     } else {
       accentColor = AppColors.danger;
-      gradientStart = AppColors.danger.withOpacity(0.04);
-      gradientEnd = AppColors.danger.withOpacity(0.01);
+      gradientStart = AppColors.danger.withValues(alpha: 0.04);
+      gradientEnd = AppColors.danger.withValues(alpha: 0.01);
     }
 
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: accentColor.withOpacity(0.2), width: 1.5),
+        side: BorderSide(color: accentColor.withValues(alpha: 0.2), width: 1.5),
       ),
       clipBehavior: Clip.antiAlias,
       child: Container(
@@ -53,7 +53,7 @@ class ProductCard extends StatelessWidget {
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: accentColor.withOpacity(0.1),
+                    color: accentColor.withValues(alpha: 0.1),
                     width: 1,
                   ),
                 ),
@@ -134,7 +134,7 @@ class ProductCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: accentColor.withOpacity(0.1),
+                color: accentColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
@@ -190,7 +190,7 @@ class ProductCard extends StatelessWidget {
             size: 20,
             color: isImportant
                 ? AppColors.danger
-                : AppColors.primary.withOpacity(0.7),
+                : AppColors.primary.withValues(alpha: 0.7),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -233,7 +233,7 @@ class ProductCard extends StatelessWidget {
             Icon(
               Icons.science_rounded,
               size: 20,
-              color: AppColors.primary.withOpacity(0.7),
+              color: AppColors.primary.withValues(alpha: 0.7),
             ),
             const SizedBox(width: 12),
             const Text(
