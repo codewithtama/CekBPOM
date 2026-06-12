@@ -87,6 +87,9 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> with SingleTicker
           SystemSound.play(SystemSoundType.click);
         }
 
+        // Auto-copy to clipboard
+        Clipboard.setData(ClipboardData(text: rawCode));
+
         // Navigate directly to result screen
         Navigator.pushReplacement(
           context,
@@ -247,17 +250,77 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> with SingleTicker
             ),
           ),
 
-          // 3. Scan Target Border Lines
+          // 3. Scan Target Border Lines (Interactive corner brackets)
           Center(
-            child: Container(
+            child: SizedBox(
               width: scanAreaSize,
               height: scanAreaSize,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white, width: 2),
-                borderRadius: BorderRadius.circular(24),
-              ),
               child: Stack(
                 children: [
+                  // Top Left Corner Bracket
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          top: BorderSide(color: _isScanCompleted ? AppColors.success : Colors.white, width: 4),
+                          left: BorderSide(color: _isScanCompleted ? AppColors.success : Colors.white, width: 4),
+                        ),
+                        borderRadius: const BorderRadius.only(topLeft: Radius.circular(24)),
+                      ),
+                    ),
+                  ),
+                  // Top Right Corner Bracket
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          top: BorderSide(color: _isScanCompleted ? AppColors.success : Colors.white, width: 4),
+                          right: BorderSide(color: _isScanCompleted ? AppColors.success : Colors.white, width: 4),
+                        ),
+                        borderRadius: const BorderRadius.only(topRight: Radius.circular(24)),
+                      ),
+                    ),
+                  ),
+                  // Bottom Left Corner Bracket
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(color: _isScanCompleted ? AppColors.success : Colors.white, width: 4),
+                          left: BorderSide(color: _isScanCompleted ? AppColors.success : Colors.white, width: 4),
+                        ),
+                        borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(24)),
+                      ),
+                    ),
+                  ),
+                  // Bottom Right Corner Bracket
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(color: _isScanCompleted ? AppColors.success : Colors.white, width: 4),
+                          right: BorderSide(color: _isScanCompleted ? AppColors.success : Colors.white, width: 4),
+                        ),
+                        borderRadius: const BorderRadius.only(bottomRight: Radius.circular(24)),
+                      ),
+                    ),
+                  ),
                   // Animated Scanning Line
                   AnimatedBuilder(
                     animation: _scannerLineAnimation,
@@ -270,11 +333,11 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> with SingleTicker
                         child: Container(
                           height: 3,
                           decoration: BoxDecoration(
-                            color: AppColors.primary,
+                            color: _isScanCompleted ? AppColors.success : AppColors.primary,
                             borderRadius: BorderRadius.circular(2),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.8),
+                                color: (_isScanCompleted ? AppColors.success : AppColors.primary).withValues(alpha: 0.8),
                                 blurRadius: 8,
                                 spreadRadius: 2,
                               ),

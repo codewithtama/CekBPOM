@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/utils/ingredients_analyzer.dart';
 import '../../data/models/product_model.dart';
 import 'status_badge.dart';
 
@@ -107,6 +109,7 @@ class ProductCard extends StatelessWidget {
                     product.expiredDate.isNotEmpty ? product.expiredDate : '-',
                     isImportant: safety == 'KEDALUWARSA',
                   ),
+                  _buildWarningsIfAny(context),
                   if (product.ingredients.isNotEmpty) ...[
                     const Divider(height: 32, thickness: 1),
                     _buildIngredientsSection(product.ingredients),
@@ -264,6 +267,71 @@ class ProductCard extends StatelessWidget {
               color: AppColors.textPrimary,
               height: 1.4,
             ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWarningsIfAny(BuildContext context) {
+    final warnings = IngredientsAnalyzer.analyze(product.ingredients);
+    if (warnings.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.dangerLight.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.danger.withValues(alpha: 0.3), width: 1.5),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.gavel_rounded, color: AppColors.danger, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'PERINGATAN KANDUNGAN!',
+                    style: GoogleFonts.lexend(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.danger,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ...warnings.map((warn) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '• ${warn.chemicalName}',
+                      style: GoogleFonts.lexend(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      warn.description,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              )),
+            ],
           ),
         ),
       ],
