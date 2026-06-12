@@ -20,6 +20,26 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> with SingleTicker
   bool _isScanCompleted = false;
   late AnimationController _scannerAnimationController;
   late Animation<double> _scannerLineAnimation;
+  double _currentZoom = 0.0;
+
+  void _toggleZoom() {
+    setState(() {
+      if (_currentZoom == 0.0) {
+        _currentZoom = 0.5; // 2x zoom
+      } else if (_currentZoom == 0.5) {
+        _currentZoom = 1.0; // 3x max zoom
+      } else {
+        _currentZoom = 0.0; // reset
+      }
+      _cameraController.setZoomScale(_currentZoom);
+    });
+  }
+
+  String _getZoomText() {
+    if (_currentZoom == 0.0) return '1.0x';
+    if (_currentZoom == 0.5) return '2.0x';
+    return '3.0x';
+  }
 
   @override
   void initState() {
@@ -265,6 +285,42 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> with SingleTicker
                     },
                   ),
                 ],
+              ),
+            ),
+          ),
+
+          // Zoom Toggle Button overlay (placed just below the scanning frame)
+          Positioned(
+            top: size.height / 2 + scanAreaSize / 2 + 16,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: InkWell(
+                onTap: _toggleZoom,
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.zoom_in_rounded, color: Colors.white, size: 18),
+                      const SizedBox(width: 6),
+                      Text(
+                        _getZoomText(),
+                        style: GoogleFonts.lexend(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
