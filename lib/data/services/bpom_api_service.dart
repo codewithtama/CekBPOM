@@ -36,9 +36,18 @@ class BpomApiService {
   Future<ProductModel> checkProduct(String code) async {
     developer.log('Checking product: $code', name: 'BpomApiService');
     
+    // Format code for food registration numbers
+    final upperCode = code.toUpperCase();
+    String searchCode = code;
+    if (upperCode.startsWith('MD') && code.length > 2 && RegExp(r'^[0-9]').hasMatch(code.substring(2))) {
+      searchCode = 'MD ${code.substring(2)}';
+    } else if (upperCode.startsWith('ML') && code.length > 2 && RegExp(r'^[0-9]').hasMatch(code.substring(2))) {
+      searchCode = 'ML ${code.substring(2)}';
+    }
+
     // 1. Try hitting the primary public API (as requested)
     try {
-      final response = await _dio.get('${ApiConstants.primaryApiUrl}$code');
+      final response = await _dio.get('${ApiConstants.primaryApiUrl}$searchCode');
       if (response.statusCode == 200 && response.data != null) {
         final data = response.data;
         if (data is Map<String, dynamic>) {
@@ -54,7 +63,7 @@ class BpomApiService {
     }
 
     // 2. Fallback: scrape data from the main website using DataTables endpoint
-    return _scrapeProduct(code);
+    return _scrapeProduct(searchCode);
   }
 
   /// Scrapes product from official website's DataTable endpoint
