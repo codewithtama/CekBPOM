@@ -1,0 +1,31 @@
+Categories:
+  - Health
+  - Utility
+License: MIT
+SourceCode: https://github.com/codewithtama/CekBPOM
+IssueTracker: https://github.com/codewithtama/CekBPOM/issues
+
+Name: CekBPOM
+Summary: Verifikasi keaslian dan keamanan produk resmi BPOM RI
+
+Description: |-
+  Aplikasi mobile Flutter untuk memverifikasi produk obat, makanan, kosmetik,
+  dan suplemen kesehatan secara instan langsung dari database resmi BPOM RI.
+
+RepoType: git
+Repo: https://github.com/codewithtama/CekBPOM.git
+
+Builds:
+  - versionName: 1.0.0
+    versionCode: 1
+    commit: v1.0.0
+    subdir: android/app
+    gradle:
+      - yes
+    flutter: yes
+
+AutoName: CekBPOM
+AutoUpdateMode: Version %v
+UpdateCheckMode: Tags
+CurrentVersion: 1.0.0
+CurrentVersionCode: 1
