@@ -19,31 +19,31 @@ class ScanState {
   final bool isLoading;
   final String? error;
   final ProductModel? result;
+  final String? sourceLabel;
 
   ScanState({
     this.isLoading = false,
     this.error,
     this.result,
-    final String? sourceLabel;
+    this.sourceLabel,
   });
 
   ScanState copyWith({
     bool? isLoading,
     String? error,
-      this.sourceLabel,
     ProductModel? result,
+    String? sourceLabel,
   }) {
     return ScanState(
       isLoading: isLoading ?? this.isLoading,
-      error: error,
+      error: error ?? this.error,
       result: result ?? this.result,
-      String? sourceLabel,
+      sourceLabel: sourceLabel ?? this.sourceLabel,
     );
   }
 }
 
 class ScanNotifier extends StateNotifier<ScanState> {
-        sourceLabel: sourceLabel ?? this.sourceLabel,
   final BpomRepository _repository;
   final Ref _ref;
 
