@@ -15,11 +15,13 @@ import '../../core/utils/pdf_generator.dart';
 class ResultScreen extends ConsumerStatefulWidget {
   final String scanCode;
   final ProductModel? cachedProduct;
+  final String? sourceLabel;
 
   const ResultScreen({
     super.key,
     required this.scanCode,
     this.cachedProduct,
+    this.sourceLabel,
   });
 
   @override
@@ -114,6 +116,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> with SingleTickerPr
     
     // Determine the product to display (either cached or retrieved from state)
     final product = widget.cachedProduct ?? scanState.result;
+    final sourceLabel = widget.sourceLabel ?? scanState.sourceLabel ?? (widget.cachedProduct != null ? 'Cache riwayat' : null);
 
     // Trigger animation when online state completes and returns a result
     if (widget.cachedProduct == null && scanState.result != null && !_animationController.isAnimating && _animationController.status == AnimationStatus.dismissed) {
@@ -143,7 +146,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen> with SingleTickerPr
                     position: _slideAnimation,
                     child: Screenshot(
                       controller: _screenshotController,
-                      child: ProductCard(product: product),
+                      child: ProductCard(
+                        product: product,
+                        sourceLabel: sourceLabel,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 32),

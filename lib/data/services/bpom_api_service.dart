@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import '../../core/constants/api_constants.dart';
+import '../models/product_lookup_result.dart';
 import '../models/news_model.dart';
 import '../models/product_model.dart';
 
@@ -33,7 +34,7 @@ class BpomApiService {
   }
 
   /// Verifies authenticity of a product registration number
-  Future<ProductModel> checkProduct(String code) async {
+  Future<ProductLookupResult> checkProduct(String code) async {
     developer.log('Checking product: $code', name: 'BpomApiService');
     
     // Format code for food registration numbers
@@ -51,7 +52,10 @@ class BpomApiService {
       if (response.statusCode == 200 && response.data != null) {
         final data = response.data;
         if (data is Map<String, dynamic>) {
-          return ProductModel.fromJson(data);
+          return ProductLookupResult(
+            product: ProductModel.fromJson(data),
+            sourceLabel: 'API publik BPOM',
+          );
         }
       }
     } catch (e) {
@@ -67,7 +71,7 @@ class BpomApiService {
   }
 
   /// Scrapes product from official website's DataTable endpoint
-  Future<ProductModel> _scrapeProduct(String code) async {
+  Future<ProductLookupResult> _scrapeProduct(String code) async {
     try {
       // Step A: Perform GET to retrieve session cookies and CSRF token
       developer.log('Step A: Fetching session cookies & CSRF token from all-produk page', name: 'BpomApiService');
@@ -184,11 +188,17 @@ class BpomApiService {
           if (dataList.isNotEmpty) {
             // Found matched product, map the first result
             developer.log('Product registration found in BPOM database!', name: 'BpomApiService');
-            return ProductModel.fromJson(dataList.first as Map<String, dynamic>);
+            return ProductLookupResult(
+              product: ProductModel.fromJson(dataList.first as Map<String, dynamic>),
+              sourceLabel: 'Scraper BPOM',
+            );
           } else {
             // Not found in database
             developer.log('Product not found in BPOM database.', name: 'BpomApiService');
-            return ProductModel.notFound(code);
+            return ProductLookupResult(
+              product: ProductModel.notFound(code),
+              sourceLabel: 'Scraper BPOM',
+            );
           }
         }
       }

@@ -21,9 +21,18 @@ class HistoryNotifier extends StateNotifier<List<ScanHistoryModel>> {
     loadHistory();
   }
 
-  Future<void> clearAll() async {
+  Future<void> clearHistory() async {
     await _historyService.clearHistory();
     loadHistory();
+  }
+
+  Future<void> clearAllData() async {
+    await _historyService.clearAllData();
+    loadHistory();
+  }
+
+  Future<void> clearAll() async {
+    await clearAllData();
   }
 }
 

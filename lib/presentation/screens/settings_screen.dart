@@ -106,7 +106,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                ref.read(historyProvider.notifier).clearAll();
+                ref.read(historyProvider.notifier).clearAllData();
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(

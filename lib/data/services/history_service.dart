@@ -5,6 +5,7 @@ import '../models/scan_history_model.dart';
 
 class HistoryService {
   static const String boxName = 'scan_history';
+  static const String cacheBoxName = 'product_cache';
   static const String paoBoxName = 'pao_records';
 
   /// Initializes Hive and registers adapters
@@ -21,6 +22,7 @@ class HistoryService {
       }
       
       await Hive.openBox<ScanHistoryModel>(boxName);
+      await Hive.openBox<ProductModel>(cacheBoxName);
       await Hive.openBox<Map>(paoBoxName);
       developer.log('Hive Scan History and PAO records initialized successfully', name: 'HistoryService');
     } catch (e) {
@@ -29,6 +31,7 @@ class HistoryService {
   }
 
   Box<ScanHistoryModel> get _box => Hive.box<ScanHistoryModel>(boxName);
+  Box<ProductModel> get _cacheBox => Hive.box<ProductModel>(cacheBoxName);
   Box<Map> get _paoBox => Hive.box<Map>(paoBoxName);
 
   /// Retrieves all scan history sorted by date (latest first)
@@ -64,6 +67,7 @@ class HistoryService {
         scanDate: DateTime.now(),
       );
       await _box.add(newRecord);
+      await saveCachedProduct(product);
       developer.log('Added scan history: ${product.name}', name: 'HistoryService');
     } catch (e) {
       developer.log('Error adding scan history to Hive', name: 'HistoryService', error: e);
@@ -95,26 +99,52 @@ class HistoryService {
     }
   }
 
-  /// Checks if product with the registration number is cached in history (Offline fallback query)
+  /// Clears the local product cache without affecting scan history.
+  Future<void> clearCache() async {
+    try {
+      await _cacheBox.clear();
+      developer.log('Cleared local product cache', name: 'HistoryService');
+    } catch (e) {
+      developer.log('Error clearing local cache', name: 'HistoryService', error: e);
+    }
+  }
+
+  /// Clears all locally stored scan data, cache, and PAO records.
+  Future<void> clearAllData() async {
+    try {
+      await clearHistory();
+      await clearCache();
+      developer.log('Cleared all local scan data', name: 'HistoryService');
+    } catch (e) {
+      developer.log('Error clearing all local data', name: 'HistoryService', error: e);
+    }
+  }
+
+  /// Checks if product with the registration number is cached locally (offline fallback query).
   ProductModel? getCachedProduct(String code) {
     try {
       final cleanedCode = code.replaceAll(RegExp(r'\s+'), '').toUpperCase();
-      
-      final records = _box.values.where((element) {
-        final regNo = element.product.registrationNumber.replaceAll(RegExp(r'\s+'), '').toUpperCase();
-        return regNo == cleanedCode;
-      }).toList();
 
-      if (records.isNotEmpty) {
-        // Sort to get latest
-        records.sort((a, b) => b.scanDate.compareTo(a.scanDate));
+      final cachedProduct = _cacheBox.get(cleanedCode);
+      if (cachedProduct != null) {
         developer.log('Found cached product for code: $code', name: 'HistoryService');
-        return records.first.product;
+        return cachedProduct;
       }
     } catch (e) {
       developer.log('Error querying cache', name: 'HistoryService', error: e);
     }
     return null;
+  }
+
+  /// Saves a product into the dedicated offline cache.
+  Future<void> saveCachedProduct(ProductModel product) async {
+    try {
+      final key = product.registrationNumber.replaceAll(RegExp(r'\s+'), '').toUpperCase();
+      await _cacheBox.put(key, product);
+      developer.log('Saved cached product: $key', name: 'HistoryService');
+    } catch (e) {
+      developer.log('Error saving cached product', name: 'HistoryService', error: e);
+    }
   }
 
   /// Saves or updates PAO details for a product

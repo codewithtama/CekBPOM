@@ -1,6 +1,7 @@
 import 'dart:developer' as developer;
 import '../../core/utils/connectivity_helper.dart';
 import '../../core/utils/barcode_parser.dart';
+import '../models/product_lookup_result.dart';
 import '../models/news_model.dart';
 import '../models/product_model.dart';
 import '../services/bpom_api_service.dart';
@@ -17,7 +18,7 @@ class BpomRepository {
         _historyService = historyService;
 
   /// Validates and checks product registration number
-  Future<ProductModel> checkProduct(String code) async {
+  Future<ProductLookupResult> checkProduct(String code) async {
     final cleaned = BarcodeParser.cleanCode(code);
     if (cleaned.isEmpty) {
       throw Exception('Nomor registrasi tidak valid.');
@@ -29,7 +30,10 @@ class BpomRepository {
       developer.log('Offline mode active. Searching local cache...', name: 'BpomRepository');
       final cachedProduct = _historyService.getCachedProduct(cleaned);
       if (cachedProduct != null) {
-        return cachedProduct;
+        return ProductLookupResult(
+          product: cachedProduct,
+          sourceLabel: 'Cache lokal',
+        );
       } else {
         throw Exception(
           'Anda sedang offline. Produk ini belum pernah dipindai sebelumnya, sehingga tidak ada di cache lokal.',
@@ -38,12 +42,12 @@ class BpomRepository {
     }
 
     // Online mode: fetch from API/scraper
-    final product = await _apiService.checkProduct(cleaned);
+    final result = await _apiService.checkProduct(cleaned);
     
     // Cache the result into scan history
-    await _historyService.addHistory(product);
+    await _historyService.addHistory(result.product);
     
-    return product;
+    return result;
   }
 
   /// Fetches live news from BPOM with offline fallback to critical warning alerts

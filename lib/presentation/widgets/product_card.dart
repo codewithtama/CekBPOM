@@ -11,8 +11,9 @@ import 'status_badge.dart';
 
 class ProductCard extends ConsumerWidget {
   final ProductModel product;
+  final String? sourceLabel;
 
-  const ProductCard({super.key, required this.product});
+  const ProductCard({super.key, required this.product, this.sourceLabel});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -66,6 +67,36 @@ class ProductCard extends ConsumerWidget {
               ),
               child: Center(child: StatusBadge(status: safety, fontSize: 16)),
             ),
+
+            if (sourceLabel != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: accentColor.withValues(alpha: 0.15)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.cloud_done_rounded, size: 18, color: accentColor),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Sumber data: $sourceLabel',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
             // Product Details Content
             Padding(

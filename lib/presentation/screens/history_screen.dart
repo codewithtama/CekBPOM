@@ -53,7 +53,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             ),
             TextButton(
               onPressed: () {
-                ref.read(historyProvider.notifier).clearAll();
+                ref.read(historyProvider.notifier).clearHistory();
                 Navigator.pop(context);
               },
               child: Text(

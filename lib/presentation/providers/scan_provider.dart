@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/models/product_lookup_result.dart';
 import '../../data/models/product_model.dart';
 import '../../data/repositories/bpom_repository.dart';
 import '../../data/services/bpom_api_service.dart';
@@ -23,22 +24,26 @@ class ScanState {
     this.isLoading = false,
     this.error,
     this.result,
+    final String? sourceLabel;
   });
 
   ScanState copyWith({
     bool? isLoading,
     String? error,
+      this.sourceLabel,
     ProductModel? result,
   }) {
     return ScanState(
       isLoading: isLoading ?? this.isLoading,
       error: error,
       result: result ?? this.result,
+      String? sourceLabel,
     );
   }
 }
 
 class ScanNotifier extends StateNotifier<ScanState> {
+        sourceLabel: sourceLabel ?? this.sourceLabel,
   final BpomRepository _repository;
   final Ref _ref;
 
@@ -47,8 +52,12 @@ class ScanNotifier extends StateNotifier<ScanState> {
   Future<void> checkProduct(String code) async {
     state = ScanState(isLoading: true);
     try {
-      final product = await _repository.checkProduct(code);
-      state = ScanState(isLoading: false, result: product);
+      final ProductLookupResult lookupResult = await _repository.checkProduct(code);
+      state = ScanState(
+        isLoading: false,
+        result: lookupResult.product,
+        sourceLabel: lookupResult.sourceLabel,
+      );
       // Automatically refresh scan history list
       _ref.read(historyProvider.notifier).loadHistory();
     } catch (e) {
