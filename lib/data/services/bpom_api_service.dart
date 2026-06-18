@@ -54,7 +54,7 @@ class BpomApiService {
         if (data is Map<String, dynamic>) {
           return ProductLookupResult(
             product: ProductModel.fromJson(data),
-            sourceLabel: 'API publik BPOM',
+            sourceLabel: 'BPOM',
           );
         }
       }
@@ -190,14 +190,14 @@ class BpomApiService {
             developer.log('Product registration found in BPOM database!', name: 'BpomApiService');
             return ProductLookupResult(
               product: ProductModel.fromJson(dataList.first as Map<String, dynamic>),
-              sourceLabel: 'Scraper BPOM',
+              sourceLabel: 'BPOM',
             );
           } else {
             // Not found in database
             developer.log('Product not found in BPOM database.', name: 'BpomApiService');
             return ProductLookupResult(
               product: ProductModel.notFound(code),
-              sourceLabel: 'Scraper BPOM',
+              sourceLabel: 'BPOM',
             );
           }
         }

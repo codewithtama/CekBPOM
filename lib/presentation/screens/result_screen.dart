@@ -110,6 +110,77 @@ class _ResultScreenState extends ConsumerState<ResultScreen> with SingleTickerPr
     }
   }
 
+  Future<void> _showEditRegistrationDialog(String currentCode) async {
+    final controller = TextEditingController(text: currentCode);
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            'Edit Nomor Registrasi',
+            style: GoogleFonts.lexend(fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Ubah nomor registrasi lalu cek ulang produk.',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                textCapitalization: TextCapitalization.characters,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'NA18260102268',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Batal',
+                style: GoogleFonts.lexend(color: AppColors.textSecondary),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final newCode = controller.text.trim();
+                if (newCode.isEmpty) {
+                  return;
+                }
+                Navigator.pop(context);
+                ref.read(scanProvider.notifier).checkProduct(newCode);
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: Text(
+                'Cek Ulang',
+                style: GoogleFonts.lexend(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final scanState = ref.watch(scanProvider);
@@ -200,6 +271,21 @@ class _ResultScreenState extends ConsumerState<ResultScreen> with SingleTickerPr
                       ),
                     ),
                   ),
+                  if (!product.isFound) ...[
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () => _showEditRegistrationDialog(product.registrationNumber),
+                      icon: const Icon(Icons.edit_rounded),
+                      label: const Text('Edit Nomor Registrasi'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 50),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 24),
                 ],
               ),
@@ -263,6 +349,18 @@ class _ResultScreenState extends ConsumerState<ResultScreen> with SingleTickerPr
                       child: Text(
                         'Coba Lagi',
                         style: GoogleFonts.lexend(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () => _showEditRegistrationDialog(widget.scanCode),
+                      icon: const Icon(Icons.edit_rounded),
+                      label: const Text('Edit Nomor Registrasi'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ],

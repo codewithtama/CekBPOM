@@ -49,6 +49,7 @@ dependencies:
   image_picker: ^1.0.7
   pdf: ^3.11.5
   printing: ^5.13.0
+  local_auth: ^2.3.0
 
 dev_dependencies:
   flutter_test:
