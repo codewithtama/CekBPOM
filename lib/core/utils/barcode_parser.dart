@@ -1,54 +1,68 @@
 class BarcodeParser {
   BarcodeParser._();
 
-  // Pattern for BPOM registration numbers
-  // Examples:
+  // BPOM registration numbers, after whitespace is removed:
   // - NA18210100001, NKIT250001756 (Cosmetics)
-  // - MD 234567890123 (Food Domestic)
-  // - ML 123456789012 (Food Importer)
-  // - TR123456789, SD123456789 (Traditional medicine, supplements)
-  // - DKL1234567890A1 (Drugs)
-  static final RegExp _bpomRegExp = RegExp(
-    r'\b([A-Z]{2,4})\s*([0-9]{9,12}[A-Z0-9]*)\b',
-    caseSensitive: false,
-  );
+  // - MD042867000101354 (Food, domestic), ML240935000701386 (Food, imported)
+  // - TR123456789, POMTR122663051, SD123456789, SI214593251, QL012700041
+  // - DKL2542601949B1 (Drugs)
+  static final RegExp _bpomRegExp = RegExp(r'^[A-Z]{2,6}[0-9]{8,16}[A-Z0-9]{0,4}$');
 
-  /// Cleans the input code (removing whitespace, brackets, special prefixes like (90) for GS1)
+  // AIM symbology identifier some scanners prepend, e.g. "]Q3" or "]d2".
+  static final RegExp _symbologyPrefix = RegExp(r'^\][A-Za-z][0-9]');
+
+  // GS1 AI (90) in human-readable form, terminated by the next "(" AI.
+  static final RegExp _gs1Ai90Readable = RegExp(r'\(90\)([^(\x1D]+)');
+
+  static final RegExp _retailBarcode = RegExp(r'^[0-9]{8,14}$');
+
+  /// Extracts the bare registration number from raw scanner text or user input.
+  ///
+  /// BPOM 2D codes carry the number in GS1 AI (90) and may append other AIs
+  /// such as (91) batch data; those must be stripped or the lookup returns
+  /// no match and a genuine product is reported as unregistered.
   static String cleanCode(String input) {
-    String cleaned = input.trim();
-    
-    // Check if it has GS1 AI (90) prefix: (90)NA18210100001 or 90NA18210100001
-    if (cleaned.startsWith('(90)')) {
-      cleaned = cleaned.substring(4);
-    } else if (cleaned.startsWith('90') && cleaned.length > 10 && !cleaned.substring(2, 4).contains(RegExp(r'[0-9]'))) {
-      // 90 followed by non-digits usually implies AI (90)
-      cleaned = cleaned.substring(2);
+    var cleaned = input.trim().replaceFirst(_symbologyPrefix, '');
+
+    final readable = _gs1Ai90Readable.firstMatch(cleaned)?.group(1);
+    if (readable != null) {
+      cleaned = readable;
+    } else if (RegExp(r'^90[A-Za-z]').hasMatch(cleaned)) {
+      // Raw GS1 element string: AIs are separated by FNC1 (GS, 0x1D).
+      cleaned = cleaned.substring(2).split('\x1D').first;
     }
 
-    // Remove any formatting spaces
-    cleaned = cleaned.replaceAll(RegExp(r'\s+'), '');
-    return cleaned.toUpperCase();
+    return normalize(cleaned);
   }
+
+  /// Uppercases and removes all whitespace so numbers compare reliably.
+  static String normalize(String code) {
+    return code.replaceAll(RegExp(r'\s+'), '').toUpperCase();
+  }
+
+  /// True when the code is a retail EAN/UPC/GTIN, not a BPOM number.
+  static bool isRetailBarcode(String code) => _retailBarcode.hasMatch(cleanCode(code));
 
   /// Verifies if a string is a valid-looking BPOM registration number
   static bool isValidBpomFormat(String code) {
     final cleaned = cleanCode(code);
-    if (cleaned.isEmpty) return false;
-    
-    // Check general length and characters
-    // Typically starts with 2-4 letters followed by 9-12 numbers/alphanumerics
-    return _bpomRegExp.hasMatch(cleaned);
+    return cleaned.isNotEmpty && _bpomRegExp.hasMatch(cleaned);
   }
 
   /// Tries to extract BPOM registration number from parsed scanner text
   static String? extractRegistrationNumber(String scanResult) {
     final cleaned = cleanCode(scanResult);
-    final match = _bpomRegExp.firstMatch(cleaned);
-    if (match != null) {
-      return match.group(0);
+    return cleaned.isEmpty ? null : cleaned;
+  }
+
+  /// Compares two registration numbers, ignoring spacing and the optional
+  /// "POM" prefix BPOM uses on some traditional-medicine numbers.
+  static bool isSameRegistration(String a, String b) {
+    String strip(String value) {
+      final normalized = normalize(value);
+      return normalized.startsWith('POM') ? normalized.substring(3) : normalized;
     }
-    
-    // Fallback: if it's just numbers, it might be EAN-13 barcode
-    return cleaned;
+
+    return strip(a) == strip(b);
   }
 }

@@ -50,7 +50,8 @@ class ScanNotifier extends StateNotifier<ScanState> {
   ScanNotifier(this._repository, this._ref) : super(ScanState());
 
   Future<void> checkProduct(String code) async {
-    state = state.copyWith(isLoading: true, error: null);
+    // Fresh state: copyWith cannot null out a previous error or result.
+    state = ScanState(isLoading: true);
     try {
       final ProductLookupResult lookupResult = await _repository.checkProduct(code);
       state = ScanState(

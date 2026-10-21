@@ -1,7 +1,5 @@
 import 'dart:developer' as developer;
-import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:dio/io.dart';
 import '../../core/constants/api_constants.dart';
 import '../models/product_lookup_result.dart';
 import '../models/news_model.dart';
@@ -13,61 +11,25 @@ class BpomApiService {
   BpomApiService({Dio? dio}) : _dio = dio ?? _createDefaultDio();
 
   static Dio _createDefaultDio() {
-    final dio = Dio(
+    return Dio(
       BaseOptions(
-        connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 10),
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 20),
         headers: {
           'User-Agent':
               'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         },
       ),
     );
-    if (dio.httpClientAdapter is IOHttpClientAdapter) {
-      (dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
-        final client = HttpClient();
-        client.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
-        return client;
-      };
-    }
-    return dio;
   }
 
   /// Verifies authenticity of a product registration number
   Future<ProductLookupResult> checkProduct(String code) async {
     developer.log('Checking product: $code', name: 'BpomApiService');
-    
-    // Format code for food registration numbers
-    final upperCode = code.toUpperCase();
-    String searchCode = code;
-    if (upperCode.startsWith('MD') && code.length > 2 && RegExp(r'^[0-9]').hasMatch(code.substring(2))) {
-      searchCode = 'MD ${code.substring(2)}';
-    } else if (upperCode.startsWith('ML') && code.length > 2 && RegExp(r'^[0-9]').hasMatch(code.substring(2))) {
-      searchCode = 'ML ${code.substring(2)}';
-    }
 
-    // 1. Try hitting the primary public API (as requested)
-    try {
-      final response = await _dio.get('${ApiConstants.primaryApiUrl}$searchCode');
-      if (response.statusCode == 200 && response.data != null) {
-        final data = response.data;
-        if (data is Map<String, dynamic>) {
-          return ProductLookupResult(
-            product: ProductModel.fromJson(data),
-            sourceLabel: 'BPOM',
-          );
-        }
-      }
-    } catch (e) {
-      developer.log(
-        'Primary API failed or timed out. Falling back to web scraping...',
-        name: 'BpomApiService',
-        error: e,
-      );
-    }
-
-    // 2. Fallback: scrape data from the main website using DataTables endpoint
-    return _scrapeProduct(searchCode);
+    // The public api-cekbpom.pom.go.id host no longer resolves, so the
+    // official cekbpom portal is the only live data source.
+    return _scrapeProduct(code);
   }
 
   /// Scrapes product from official website's DataTable endpoint

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/utils/barcode_parser.dart';
 import '../../core/utils/ingredients_analyzer.dart';
 import '../../data/models/product_model.dart';
 import '../providers/pao_provider.dart';
@@ -110,6 +111,7 @@ class ProductCard extends ConsumerWidget {
                     category: product.category,
                     accentColor: accentColor,
                   ),
+                  _buildRetailBarcodeNoticeIfNeeded(),
                   const Divider(height: 32, thickness: 1),
                   _buildDetailRow(
                     Icons.pin_rounded,
@@ -144,7 +146,6 @@ class ProductCard extends ConsumerWidget {
                     product.expiredDate.isNotEmpty ? product.expiredDate : '-',
                     isImportant: safety == 'KEDALUWARSA',
                   ),
-                  _buildHalalRow(product),
                   _buildWarningsIfAny(context),
                   if (product.ingredients.isNotEmpty) ...[
                     const Divider(height: 32, thickness: 1),
@@ -631,77 +632,31 @@ class ProductCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildHalalRow(ProductModel product) {
-    final cat = product.category.toUpperCase();
-    final isHalalRelevant = cat.contains('KOSMETIK') || 
-                            cat.contains('PANGAN') || 
-                            cat.contains('SUPLEMEN') || 
-                            cat.contains('OBAT') || 
-                            cat.contains('MAKANAN') ||
-                            cat.contains('MINUMAN');
-                            
-    if (!isHalalRelevant) return const SizedBox.shrink();
-
-    // Generate a deterministic halal ID based on registration number hash
-    final hashId = product.registrationNumber.hashCode.abs().toString().padLeft(14, '0');
-    final halalId = 'ID$hashId';
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+  Widget _buildRetailBarcodeNoticeIfNeeded() {
+    if (product.isFound || !BarcodeParser.isRetailBarcode(product.registrationNumber)) {
+      return const SizedBox.shrink();
+    }
+    return Container(
+      margin: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.verified_rounded,
-            size: 20,
-            color: AppColors.success,
-          ),
-          const SizedBox(width: 12),
+          const Icon(Icons.info_outline_rounded, color: AppColors.warning, size: 20),
+          const SizedBox(width: 10),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Sertifikasi Halal Indonesia',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.success.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
-                      ),
-                      child: const Text(
-                        'HALAL INDONESIA',
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.success,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        halalId,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+            child: Text(
+              'Kode yang dipindai (${product.registrationNumber}) merupakan barcode kasir/produk (EAN/UPC), bukan nomor registrasi BPOM.\n\nPeriksa nomor izin edar resmi pada label kemasan (misalnya BPOM RI MD/ML/NA/TR) atau pindai kode 2D QR resmi BPOM.',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textPrimary,
+                height: 1.4,
+              ),
             ),
           ),
         ],

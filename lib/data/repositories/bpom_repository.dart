@@ -3,7 +3,6 @@ import '../../core/utils/connectivity_helper.dart';
 import '../../core/utils/barcode_parser.dart';
 import '../models/product_lookup_result.dart';
 import '../models/news_model.dart';
-import '../models/product_model.dart';
 import '../services/bpom_api_service.dart';
 import '../services/history_service.dart';
 
