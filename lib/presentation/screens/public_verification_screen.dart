@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_colors.dart';
 import '../../data/models/public_service_model.dart';
+import '../../data/models/public_verification_result.dart';
+import '../../data/services/national_verification_service.dart';
+import '../providers/history_provider.dart';
+import '../widgets/public_verification_result_card.dart';
 
-class PublicVerificationScreen extends StatefulWidget {
+class PublicVerificationScreen extends ConsumerStatefulWidget {
   final PublicServiceType initialService;
 
   const PublicVerificationScreen({
@@ -14,14 +18,22 @@ class PublicVerificationScreen extends StatefulWidget {
   });
 
   @override
-  State<PublicVerificationScreen> createState() => _PublicVerificationScreenState();
+  ConsumerState<PublicVerificationScreen> createState() =>
+      _PublicVerificationScreenState();
 }
 
-class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
+class _PublicVerificationScreenState
+    extends ConsumerState<PublicVerificationScreen> {
   late PublicServiceType _currentService;
   final TextEditingController _queryController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final NationalVerificationService _verificationService =
+      NationalVerificationService();
+
   String? _validationError;
   bool _isValidated = false;
+  bool _isVerifying = false;
+  PublicVerificationResult? _verificationResult;
 
   @override
   void initState() {
@@ -32,6 +44,7 @@ class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
   @override
   void dispose() {
     _queryController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -42,6 +55,8 @@ class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
       _queryController.clear();
       _validationError = null;
       _isValidated = false;
+      _verificationResult = null;
+      _isVerifying = false;
     });
   }
 
@@ -50,6 +65,9 @@ class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
       _queryController.text = example;
       _validateInput();
     });
+    // Auto trigger in-app verification for quick example
+    final info = PublicServiceInfo.getByType(_currentService);
+    _launchVerification(info);
   }
 
   void _validateInput() {
@@ -61,24 +79,14 @@ class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
     });
   }
 
-  Future<void> _openOfficialPortal(String url) async {
-    try {
-      final uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        throw Exception('Tidak dapat membuka browser.');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal membuka portal: $e'),
-            backgroundColor: AppColors.danger,
-          ),
-        );
-      }
-    }
+  void _resetSearch() {
+    setState(() {
+      _queryController.clear();
+      _validationError = null;
+      _isValidated = false;
+      _verificationResult = null;
+      _isVerifying = false;
+    });
   }
 
   Future<void> _launchVerification(PublicServiceInfo info) async {
@@ -98,8 +106,52 @@ class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
       return;
     }
 
-    final targetUrl = info.buildVerificationUrl(_queryController.text);
-    await _openOfficialPortal(targetUrl);
+    FocusScope.of(context).unfocus();
+
+    setState(() {
+      _isVerifying = true;
+      _verificationResult = null;
+    });
+
+    try {
+      final result = await _verificationService.verify(
+        type: _currentService,
+        query: _queryController.text,
+      );
+
+      if (mounted) {
+        // Save verified item into scan history
+        ref.read(historyProvider.notifier).addHistory(result.toProductModel());
+
+        setState(() {
+          _verificationResult = result;
+          _isVerifying = false;
+        });
+
+        // Smooth scroll to the result card
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              320.0,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeOutCubic,
+            );
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isVerifying = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Terjadi kendala saat verifikasi in-app: $e'),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _pasteFromClipboard() async {
@@ -127,6 +179,7 @@ class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
             : null,
       ),
       body: SingleChildScrollView(
+        controller: _scrollController,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -140,7 +193,8 @@ class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   scrollDirection: Axis.horizontal,
                   itemCount: PublicServiceInfo.allServices.length,
-                  separatorBuilder: (context, index) => const SizedBox(width: 8),
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(width: 8),
                   itemBuilder: (context, index) {
                     final item = PublicServiceInfo.allServices[index];
                     final isSelected = item.type == _currentService;
@@ -155,13 +209,17 @@ class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
                       label: Text(item.shortTitle),
                       labelStyle: GoogleFonts.lexend(
                         fontSize: 12,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                        color: isSelected ? Colors.white : AppColors.textPrimary,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.w500,
+                        color:
+                            isSelected ? Colors.white : AppColors.textPrimary,
                       ),
                       selectedColor: item.themeColor,
                       backgroundColor: item.themeColor.withValues(alpha: 0.08),
                       side: BorderSide(
-                        color: isSelected ? item.themeColor : item.themeColor.withValues(alpha: 0.2),
+                        color: isSelected
+                            ? item.themeColor
+                            : item.themeColor.withValues(alpha: 0.2),
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -202,7 +260,8 @@ class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
                                 color: info.themeColor.withValues(alpha: 0.15),
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(info.icon, color: info.themeColor, size: 24),
+                              child: Icon(info.icon,
+                                  color: info.themeColor, size: 24),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -240,27 +299,6 @@ class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
                             height: 1.45,
                           ),
                         ),
-                        const SizedBox(height: 14),
-                        InkWell(
-                          onTap: () => _openOfficialPortal(info.officialPortalUrl),
-                          borderRadius: BorderRadius.circular(8),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Kunjungi portal: ${info.officialPortalUrl}',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: info.themeColor,
-                                  fontWeight: FontWeight.bold,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(Icons.open_in_new_rounded, size: 12, color: info.themeColor),
-                            ],
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -268,7 +306,7 @@ class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
 
                   // 3. Search & Input Section
                   Text(
-                    'Formulir Penelusuran',
+                    'Formulir Penelusuran In-App',
                     style: GoogleFonts.lexend(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -278,7 +316,8 @@ class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
                   const SizedBox(height: 8),
                   Text(
                     info.codeFormatHint,
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 12),
 
@@ -317,16 +356,19 @@ class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.8)),
+                        borderSide: BorderSide(
+                            color: AppColors.border.withValues(alpha: 0.8)),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide(color: info.themeColor, width: 2),
+                        borderSide:
+                            BorderSide(color: info.themeColor, width: 2),
                       ),
                       errorText: _isValidated ? _validationError : null,
                       filled: true,
                       fillColor: AppColors.surface,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 16),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -338,9 +380,10 @@ class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
                       onTap: () => _useExample(info.exampleCode),
                       borderRadius: BorderRadius.circular(6),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 4),
                         child: Text(
-                          'Contoh: ${info.exampleCode} (klik untuk isi)',
+                          'Contoh: ${info.exampleCode} (klik untuk verifikasi langsung)',
                           style: TextStyle(
                             fontSize: 12,
                             color: info.themeColor,
@@ -352,29 +395,105 @@ class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Action Buttons
+                  // In-App Verification Trigger Button
                   SizedBox(
                     width: double.infinity,
                     height: 52,
                     child: ElevatedButton.icon(
-                      onPressed: () => _launchVerification(info),
+                      onPressed: _isVerifying
+                          ? null
+                          : () => _launchVerification(info),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: info.themeColor,
                         foregroundColor: Colors.white,
+                        elevation: 2,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      icon: const Icon(Icons.search_rounded),
+                      icon: _isVerifying
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.verified_user_rounded),
                       label: Text(
-                        'Verifikasi di Basis Data Resmi',
-                        style: GoogleFonts.lexend(fontSize: 15, fontWeight: FontWeight.bold),
+                        _isVerifying
+                            ? 'Memverifikasi Data...'
+                            : 'Verifikasi di Aplikasi',
+                        style: GoogleFonts.lexend(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
+
+                  // 4. Loading State View
+                  if (_isVerifying) ...[
+                    const SizedBox(height: 28),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Column(
+                        children: [
+                          CircularProgressIndicator(
+                            color: info.themeColor,
+                            strokeWidth: 3,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Menghubungkan ke Sistem ${info.institution}...',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.lexend(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Memeriksa nomor pendaftaran, standar mutu, dan validitas hukum.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // 5. In-App Result Card View
+                  if (_verificationResult != null && !_isVerifying) ...[
+                    const SizedBox(height: 28),
+                    PublicVerificationResultCard(
+                      result: _verificationResult!,
+                      onReset: _resetSearch,
+                    ),
+                    const SizedBox(height: 16),
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: _resetSearch,
+                        icon: const Icon(Icons.refresh_rounded, size: 18),
+                        label: const Text('Verifikasi Nomor / Perangkat Lain'),
+                      ),
+                    ),
+                  ],
+
                   const SizedBox(height: 32),
 
-                  // 4. Panduan Format Khusus Per Lembaga
+                  // 6. Panduan Format Khusus Per Lembaga
                   _buildServiceGuideSection(info),
                 ],
               ),
@@ -456,7 +575,8 @@ class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
             'Format label: [Nomor Sertifikat]/SDPPI/[Tahun] dan [PLG ID].',
             'Perangkat tanpa sertifikat SDPPI berisiko mengganggu spektrum frekuensi publik.',
           ],
-          note: 'Label SDPPI biasanya ditempel pada stiker bodi atau e-label menu perangkat.',
+          note:
+              'Label SDPPI biasanya ditempel pada stiker bodi atau e-label menu perangkat.',
         );
 
       case PublicServiceType.kfa:
@@ -467,7 +587,8 @@ class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
             'Memetakan nama dagang obat ke zat aktif generik dan kode ATC.',
             'Terhubung langsung dengan rekam medis elektronik SatuSehat Kemenkes.',
           ],
-          note: 'Bermanfaat untuk memeriksa kandungan generik dan indikasi medis resmi.',
+          note:
+              'Bermanfaat untuk memeriksa kandungan generik dan indikasi medis resmi.',
         );
     }
   }
@@ -490,12 +611,14 @@ class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.lightbulb_outline_rounded, color: AppColors.warning, size: 20),
+              const Icon(Icons.lightbulb_outline_rounded,
+                  color: AppColors.warning, size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   title,
-                  style: GoogleFonts.lexend(fontSize: 14, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.lexend(
+                      fontSize: 14, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -507,11 +630,16 @@ class _PublicVerificationScreenState extends State<PublicVerificationScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('• ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  const Text('• ',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                   Expanded(
                     child: Text(
                       item,
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+                      style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                          height: 1.4),
                     ),
                   ),
                 ],

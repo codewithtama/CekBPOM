@@ -17,6 +17,9 @@ class _FakeHistoryNotifier extends StateNotifier<List<ScanHistoryModel>>
   Future<void> clearAll() async {}
 
   @override
+  Future<void> addHistory(dynamic product) async {}
+
+  @override
   Future<void> clearAllData() async {}
 
   @override

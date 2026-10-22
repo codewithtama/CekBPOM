@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/models/product_model.dart';
 import '../../data/models/scan_history_model.dart';
 import '../../data/services/history_service.dart';
 
@@ -14,6 +15,11 @@ class HistoryNotifier extends StateNotifier<List<ScanHistoryModel>> {
 
   void loadHistory() {
     state = _historyService.getHistory();
+  }
+
+  Future<void> addHistory(ProductModel product) async {
+    await _historyService.addHistory(product);
+    loadHistory();
   }
 
   Future<void> deleteItem(dynamic key) async {
