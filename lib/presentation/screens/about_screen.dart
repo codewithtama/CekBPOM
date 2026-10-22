@@ -42,17 +42,28 @@ class AboutScreen extends StatelessWidget {
             const SizedBox(height: 20),
             // Logo / Icon representation
             Container(
-              width: 100,
-              height: 100,
+              width: 108,
+              height: 108,
               decoration: BoxDecoration(
-                color: AppColors.primaryLight,
+                color: Colors.white,
                 shape: BoxShape.circle,
                 border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 3),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
-              child: const Icon(
-                Icons.verified_user_rounded,
-                color: AppColors.primary,
-                size: 56,
+              child: ClipOval(
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Image.asset(
+                    'assets/images/logobpom.png',
+                    fit: BoxFit.contain,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 16),

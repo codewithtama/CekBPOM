@@ -28,7 +28,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: Text(
             'Input Manual',
             style: GoogleFonts.lexend(fontWeight: FontWeight.bold),
@@ -52,9 +54,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                    borderSide: const BorderSide(
+                      color: AppColors.primary,
+                      width: 2,
+                    ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                 ),
               ),
             ],
@@ -80,8 +88,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               child: Text(
                 'Periksa',
@@ -98,21 +111,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // Navigate directly to result screen, which will trigger the loading and display results
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => ResultScreen(scanCode: code),
-      ),
+      MaterialPageRoute(builder: (context) => ResultScreen(scanCode: code)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final historyList = ref.watch(historyProvider);
-    
+
     // Calculate stats
     int totalScan = historyList.length;
-    int safeCount = historyList.where((h) => h.product.safetyStatus == 'AMAN').length;
-    int warningCount = historyList.where((h) => h.product.safetyStatus == 'KEDALUWARSA' || h.product.safetyStatus == 'PERLU DICEK').length;
-    int dangerCount = historyList.where((h) => h.product.safetyStatus == 'TIDAK TERDAFTAR').length;
+    int safeCount = historyList
+        .where((h) => h.product.safetyStatus == 'AMAN')
+        .length;
+    int warningCount = historyList
+        .where(
+          (h) =>
+              h.product.safetyStatus == 'KEDALUWARSA' ||
+              h.product.safetyStatus == 'PERLU DICEK',
+        )
+        .length;
+    int dangerCount = historyList
+        .where((h) => h.product.safetyStatus == 'TIDAK TERDAFTAR')
+        .length;
 
     return Scaffold(
       body: SafeArea(
@@ -153,13 +174,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryLight,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.15),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.08),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: const Icon(
-                      Icons.verified_user_rounded,
-                      color: AppColors.primary,
-                      size: 26,
+                    clipBehavior: Clip.antiAlias,
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Image.asset(
+                        'assets/images/logobpom.png',
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
                 ],
@@ -236,7 +271,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           const SizedBox(width: 8),
                           Text(
                             'Mulai Scan Sekarang',
-                            style: GoogleFonts.lexend(fontWeight: FontWeight.bold),
+                            style: GoogleFonts.lexend(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
@@ -287,7 +324,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppColors.border.withValues(alpha: 0.5), width: 1.5),
+                  border: Border.all(
+                    color: AppColors.border.withValues(alpha: 0.5),
+                    width: 1.5,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.02),
@@ -337,7 +377,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ],
                     ),
                     const SizedBox(width: 20),
-                    
+
                     // Legend
                     Expanded(
                       child: Column(
@@ -376,7 +416,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 1.5),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.2),
+                    width: 1.5,
+                  ),
                   color: AppColors.primaryLight.withValues(alpha: 0.1),
                 ),
                 child: InkWell(
@@ -386,7 +429,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   },
                   borderRadius: BorderRadius.circular(16),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
                     child: Row(
                       children: [
                         Container(
@@ -455,10 +501,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Container(
               width: 10,
               height: 10,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
             const SizedBox(width: 8),
             Text(
@@ -531,21 +574,39 @@ class DonutChartPainter extends CustomPainter {
     // Draw Success/Aman
     if (safeSweep > 0) {
       paintBase.color = AppColors.success;
-      canvas.drawArc(rect, _degToRad(startAngle), _degToRad(safeSweep), false, paintBase);
+      canvas.drawArc(
+        rect,
+        _degToRad(startAngle),
+        _degToRad(safeSweep),
+        false,
+        paintBase,
+      );
       startAngle += safeSweep;
     }
 
     // Draw Warning/Cek Ulang
     if (warningSweep > 0) {
       paintBase.color = AppColors.warning;
-      canvas.drawArc(rect, _degToRad(startAngle), _degToRad(warningSweep), false, paintBase);
+      canvas.drawArc(
+        rect,
+        _degToRad(startAngle),
+        _degToRad(warningSweep),
+        false,
+        paintBase,
+      );
       startAngle += warningSweep;
     }
 
     // Draw Danger/Palsu
     if (dangerSweep > 0) {
       paintBase.color = AppColors.danger;
-      canvas.drawArc(rect, _degToRad(startAngle), _degToRad(dangerSweep), false, paintBase);
+      canvas.drawArc(
+        rect,
+        _degToRad(startAngle),
+        _degToRad(dangerSweep),
+        false,
+        paintBase,
+      );
     }
   }
 

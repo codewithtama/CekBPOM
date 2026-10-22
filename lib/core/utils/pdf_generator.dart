@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -8,6 +9,13 @@ class PdfGenerator {
   static Future<void> generateAndPrintReport(ProductModel product) async {
     final pdf = pw.Document();
     
+    // Load BPOM Logo for report header
+    pw.MemoryImage? logoImage;
+    try {
+      final logoBytes = await rootBundle.load('assets/images/logobpom.png');
+      logoImage = pw.MemoryImage(logoBytes.buffer.asUint8List());
+    } catch (_) {}
+
     // Safety status color mappings
     PdfColor accentColor;
     if (product.safetyStatus == 'AMAN') {
@@ -32,14 +40,35 @@ class PdfGenerator {
                 // Header
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
                   children: [
-                    pw.Text(
-                      'LAPORAN VERIFIKASI KEAMANAN PRODUK',
-                      style: pw.TextStyle(
-                        fontSize: 16,
-                        fontWeight: pw.FontWeight.bold,
-                        color: PdfColors.blueGrey900,
-                      ),
+                    pw.Row(
+                      children: [
+                        if (logoImage != null) ...[
+                          pw.Image(logoImage, width: 34, height: 34),
+                          pw.SizedBox(width: 10),
+                        ],
+                        pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            pw.Text(
+                              'LAPORAN VERIFIKASI KEAMANAN PRODUK',
+                              style: pw.TextStyle(
+                                fontSize: 13,
+                                fontWeight: pw.FontWeight.bold,
+                                color: PdfColors.blueGrey900,
+                              ),
+                            ),
+                            pw.Text(
+                              'Database Badan Pengawas Obat dan Makanan (BPOM RI)',
+                              style: pw.TextStyle(
+                                fontSize: 9,
+                                color: PdfColors.grey700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                     pw.Text(
                       'CekBPOM App',

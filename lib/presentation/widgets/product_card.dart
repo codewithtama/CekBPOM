@@ -173,6 +173,35 @@ class ProductCard extends ConsumerWidget {
         Row(
           children: [
             Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppColors.border.withValues(alpha: 0.8)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/images/logobpom.png',
+                    width: 14,
+                    height: 14,
+                    fit: BoxFit.contain,
+                  ),
+                  const SizedBox(width: 4),
+                  const Text(
+                    'BPOM RI',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: accentColor.withValues(alpha: 0.1),

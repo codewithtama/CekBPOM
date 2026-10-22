@@ -194,17 +194,21 @@ class _ResultScreenState extends ConsumerState<ResultScreen> with SingleTickerPr
       _animationController.forward();
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Hasil Pengecekan'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () {
-            ref.read(scanProvider.notifier).clearResult();
-            Navigator.pop(context);
-          },
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          ref.read(scanProvider.notifier).clearResult();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Hasil Pengecekan'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            onPressed: () => Navigator.maybePop(context),
+          ),
         ),
-      ),
       body: Stack(
         children: [
           // Background content
@@ -369,6 +373,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> with SingleTickerPr
             ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
