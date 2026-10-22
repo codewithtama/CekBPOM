@@ -56,30 +56,43 @@ void main() {
 
     expect(container.read(tabIndexProvider), 0);
 
-    // Tap Tab 1 ("Riwayat")
-    await tester.tap(find.text('Riwayat'));
+    // Tap Tab 1 ("Layanan")
+    await tester.tap(find.text('Layanan'));
     await tester.pumpAndSettle();
     expect(container.read(tabIndexProvider), 1);
 
-    // Tap Tab 3 ("Pengaturan")
+    // Tap Tab 2 ("Riwayat")
+    await tester.tap(find.text('Riwayat'));
+    await tester.pumpAndSettle();
+    expect(container.read(tabIndexProvider), 2);
+
+    // Tap Tab 4 ("Pengaturan")
     await tester.tap(find.text('Pengaturan'));
     await tester.pumpAndSettle();
-    expect(container.read(tabIndexProvider), 3);
+    expect(container.read(tabIndexProvider), 4);
 
     // Trigger back navigation (system swipe back gesture)
     final didPopPengaturan = await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
 
-    // Handled by returning to Riwayat
+    // Handled by returning to Riwayat (Tab 2)
     expect(didPopPengaturan, isTrue);
-    expect(container.read(tabIndexProvider), 1);
+    expect(container.read(tabIndexProvider), 2);
 
     // Trigger back navigation again
     final didPopRiwayat = await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
 
-    // Handled by returning to Scan (Tab 0)
+    // Handled by returning to Layanan (Tab 1)
     expect(didPopRiwayat, isTrue);
+    expect(container.read(tabIndexProvider), 1);
+
+    // Trigger back navigation again
+    final didPopLayanan = await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    // Handled by returning to Scan (Tab 0)
+    expect(didPopLayanan, isTrue);
     expect(container.read(tabIndexProvider), 0);
 
     // Trigger back navigation on Home tab: now it allows popping the app root

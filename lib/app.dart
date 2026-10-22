@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'presentation/screens/home_screen.dart';
+import 'presentation/screens/public_verification_screen.dart';
 import 'presentation/screens/history_screen.dart';
 import 'presentation/screens/info_screen.dart';
 import 'presentation/screens/settings_screen.dart';
@@ -32,6 +33,7 @@ class _AppShell extends ConsumerStatefulWidget {
 class _AppShellState extends ConsumerState<_AppShell> {
   static const List<Widget> _screens = [
     HomeScreen(),
+    PublicVerificationScreen(),
     HistoryScreen(),
     InfoScreen(),
     SettingsScreen(),
@@ -97,10 +99,16 @@ class _AppShellState extends ConsumerState<_AppShell> {
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: currentIndex,
           onTap: _onTabSelected,
+          type: BottomNavigationBarType.fixed,
           items: [
             const BottomNavigationBarItem(
               icon: Icon(Icons.qr_code_scanner_rounded),
               label: 'Scan',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.verified_outlined),
+              activeIcon: Icon(Icons.verified_rounded),
+              label: 'Layanan',
             ),
             BottomNavigationBarItem(
               icon: historyCount > 0
@@ -113,6 +121,7 @@ class _AppShellState extends ConsumerState<_AppShell> {
             ),
             const BottomNavigationBarItem(
               icon: Icon(Icons.info_outline_rounded),
+              activeIcon: Icon(Icons.info_rounded),
               label: 'Info',
             ),
             const BottomNavigationBarItem(
