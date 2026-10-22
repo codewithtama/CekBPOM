@@ -391,14 +391,17 @@ class InfoScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Rilis Publik / Berita Terbaru',
-                      style: GoogleFonts.lexend(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                    Expanded(
+                      child: Text(
+                        'Rilis Publik / Berita Terbaru',
+                        style: GoogleFonts.lexend(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 8),
                     TextButton(
                       onPressed: () => _launchUrl(context, ApiConstants.bpomNewsUrl),
                       child: const Text('Buka Portal'),

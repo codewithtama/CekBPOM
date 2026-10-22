@@ -185,15 +185,28 @@ class AboutScreen extends StatelessWidget {
             const SizedBox(height: 24),
             
             // CTA Button for complaint
-            ElevatedButton.icon(
+            ElevatedButton(
               onPressed: () => _launchUrl(context, ApiConstants.bpomComplaintUrl),
-              icon: const Icon(Icons.support_agent_rounded),
-              label: const Text('Hubungi Pengaduan BPOM (ULPK)'),
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 52),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.support_agent_rounded),
+                  SizedBox(width: 8),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text('Hubungi Pengaduan BPOM (ULPK)'),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 32),

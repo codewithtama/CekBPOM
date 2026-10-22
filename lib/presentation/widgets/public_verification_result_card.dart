@@ -202,7 +202,7 @@ class PublicVerificationResultCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: ElevatedButton.icon(
+                    child: ElevatedButton(
                       onPressed: () async {
                         final uri = Uri.parse(result.officialPortalUrl);
                         if (await canLaunchUrl(uri)) {
@@ -210,15 +210,28 @@ class PublicVerificationResultCard extends StatelessWidget {
                               mode: LaunchMode.externalApplication);
                         }
                       },
-                      icon: const Icon(Icons.open_in_browser_rounded, size: 18),
-                      label: const Text('Buka Web'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: result.statusColor,
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 48),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.open_in_browser_rounded, size: 18),
+                          SizedBox(width: 6),
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text('Buka Web'),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -335,20 +348,23 @@ class PublicVerificationResultCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Text(
-                        result.registrationNumber,
-                        style: GoogleFonts.spaceMono(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Text(
+                          result.registrationNumber,
+                          style: GoogleFonts.spaceMono(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),
@@ -454,8 +470,8 @@ class PublicVerificationResultCard extends StatelessWidget {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SizedBox(
-                              width: 130,
+                            Expanded(
+                              flex: 4,
                               child: Text(
                                 entry.key,
                                 style: const TextStyle(
@@ -467,6 +483,7 @@ class PublicVerificationResultCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 8),
                             Expanded(
+                              flex: 5,
                               child: Text(
                                 entry.value,
                                 style: const TextStyle(
@@ -484,47 +501,91 @@ class PublicVerificationResultCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 22),
 
-                // 6. Action Buttons Grid
-                Row(
+                // 6. Action Buttons (Zero Overflow Multi-tier Layout)
+                Column(
                   children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _copyToClipboard(context),
-                        icon: const Icon(Icons.copy_rounded, size: 16),
-                        label: const Text('Salin'),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 44),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => _copyToClipboard(context),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(double.infinity, 48),
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.copy_rounded, size: 16),
+                                SizedBox(width: 6),
+                                Flexible(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text('Salin Rincian'),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _printPdf(context),
-                        icon: const Icon(Icons.picture_as_pdf_rounded, size: 16),
-                        label: const Text('Cetak PDF'),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 44),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => _printPdf(context),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(double.infinity, 48),
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.picture_as_pdf_rounded, size: 16),
+                                SizedBox(width: 6),
+                                Flexible(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text('Cetak PDF'),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
                         onPressed: () => _showDocumentSheet(context),
-                        icon: const Icon(Icons.article_outlined, size: 16),
-                        label: const Text('Portal'),
                         style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 44),
+                          minimumSize: const Size(double.infinity, 48),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.article_outlined, size: 18),
+                            SizedBox(width: 8),
+                            Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text('Pratinjau Lembar Portal Resmi'),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),

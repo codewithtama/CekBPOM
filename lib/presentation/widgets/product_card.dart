@@ -170,7 +170,10 @@ class ProductCard extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
@@ -200,7 +203,6 @@ class ProductCard extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
@@ -217,20 +219,15 @@ class ProductCard extends ConsumerWidget {
                 ),
               ),
             ),
-            if (brand != '-' && brand.isNotEmpty) ...[
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  'Brand: $brand',
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
+            if (brand != '-' && brand.isNotEmpty)
+              Text(
+                'Brand: $brand',
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-            ],
           ],
         ),
         const SizedBox(height: 12),
@@ -309,12 +306,14 @@ class ProductCard extends ConsumerWidget {
               color: AppColors.primary.withValues(alpha: 0.7),
             ),
             const SizedBox(width: 12),
-            const Text(
-              'Komposisi / Bahan Kandungan',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+            const Expanded(
+              child: Text(
+                'Komposisi / Bahan Kandungan',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
             ),
           ],
@@ -362,12 +361,14 @@ class ProductCard extends ConsumerWidget {
                 children: [
                   const Icon(Icons.gavel_rounded, color: AppColors.danger, size: 20),
                   const SizedBox(width: 8),
-                  Text(
-                    'PERINGATAN KANDUNGAN!',
-                    style: GoogleFonts.lexend(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.danger,
+                  Expanded(
+                    child: Text(
+                      'PERINGATAN KANDUNGAN!',
+                      style: GoogleFonts.lexend(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.danger,
+                      ),
                     ),
                   ),
                 ],
@@ -433,12 +434,14 @@ class ProductCard extends ConsumerWidget {
                   size: 20,
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  'Masa Kedaluwarsa Buka Kemasan',
-                  style: GoogleFonts.lexend(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                Expanded(
+                  child: Text(
+                    'Masa Kedaluwarsa Buka Kemasan',
+                    style: GoogleFonts.lexend(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                 ),
               ],
@@ -516,21 +519,27 @@ class ProductCard extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Icon(Icons.hourglass_bottom_rounded, color: statusColor, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Masa Pakai Kemasan (PAO)',
-                    style: GoogleFonts.lexend(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(Icons.hourglass_bottom_rounded, color: statusColor, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Masa Pakai Kemasan (PAO)',
+                        style: GoogleFonts.lexend(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -581,14 +590,17 @@ class ProductCard extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                remainingDays > 0 ? 'Sisa $remainingDays Hari' : 'Lewat ${-remainingDays} Hari',
-                style: GoogleFonts.lexend(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: statusColor,
+              Expanded(
+                child: Text(
+                  remainingDays > 0 ? 'Sisa $remainingDays Hari' : 'Lewat ${-remainingDays} Hari',
+                  style: GoogleFonts.lexend(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: statusColor,
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
               Text(
                 'Masa Simpan: ${paoMonths}M',
                 style: const TextStyle(
@@ -603,33 +615,38 @@ class ProductCard extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Tanggal Buka',
-                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    formattedOpened,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Tanggal Buka',
+                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      formattedOpened,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    ),
+                  ],
+                ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  const Text(
-                    'Batas Kedaluwarsa',
-                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    formattedExpiry,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                  ),
-                ],
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const Text(
+                      'Batas Kedaluwarsa',
+                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      formattedExpiry,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

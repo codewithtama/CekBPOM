@@ -399,7 +399,7 @@ class _PublicVerificationScreenState
                   SizedBox(
                     width: double.infinity,
                     height: 52,
-                    child: ElevatedButton.icon(
+                    child: ElevatedButton(
                       onPressed: _isVerifying
                           ? null
                           : () => _launchVerification(info),
@@ -407,28 +407,41 @@ class _PublicVerificationScreenState
                         backgroundColor: info.themeColor,
                         foregroundColor: Colors.white,
                         elevation: 2,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      icon: _isVerifying
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                color: Colors.white,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _isVerifying
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Icons.verified_user_rounded),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                _isVerifying
+                                    ? 'Memverifikasi Data...'
+                                    : 'Verifikasi di Aplikasi',
+                                style: GoogleFonts.lexend(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            )
-                          : const Icon(Icons.verified_user_rounded),
-                      label: Text(
-                        _isVerifying
-                            ? 'Memverifikasi Data...'
-                            : 'Verifikasi di Aplikasi',
-                        style: GoogleFonts.lexend(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -483,10 +496,22 @@ class _PublicVerificationScreenState
                     ),
                     const SizedBox(height: 16),
                     Center(
-                      child: TextButton.icon(
+                      child: TextButton(
                         onPressed: _resetSearch,
-                        icon: const Icon(Icons.refresh_rounded, size: 18),
-                        label: const Text('Verifikasi Nomor / Perangkat Lain'),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.refresh_rounded, size: 18),
+                            SizedBox(width: 6),
+                            Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text('Verifikasi Nomor / Perangkat Lain'),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
