@@ -51,7 +51,7 @@ class PublicVerificationResult {
 
   /// Converts this result into ProductModel so it can be stored in History and printed via PdfGenerator
   ProductModel toProductModel() {
-    final statusText = isValid ? 'Berlaku' : 'TIDAK TERDAFTAR';
+    final statusText = isValid ? 'Berlaku' : (status.isNotEmpty ? status : 'TIDAK TERDAFTAR');
     final detailsSummary = technicalDetails.entries
         .map((e) => '${e.key}: ${e.value}')
         .join(', ');
