@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/barcode_parser.dart';
 import '../../core/utils/ingredients_analyzer.dart';
 import '../../data/models/product_model.dart';
+import '../../data/services/halal_service.dart';
 import '../providers/pao_provider.dart';
 import 'pao_setup_sheet.dart';
 import 'status_badge.dart';
@@ -25,23 +27,23 @@ class ProductCard extends ConsumerWidget {
 
     if (safety == 'AMAN') {
       accentColor = AppColors.success;
-      gradientStart = AppColors.success.withValues(alpha: 0.04);
-      gradientEnd = AppColors.success.withValues(alpha: 0.01);
+      gradientStart = AppColors.success.withAlpha(10);
+      gradientEnd = AppColors.success.withAlpha(2);
     } else if (safety == 'KEDALUWARSA' || safety == 'PERLU DICEK') {
       accentColor = AppColors.warning;
-      gradientStart = AppColors.warning.withValues(alpha: 0.04);
-      gradientEnd = AppColors.warning.withValues(alpha: 0.01);
+      gradientStart = AppColors.warning.withAlpha(10);
+      gradientEnd = AppColors.warning.withAlpha(2);
     } else {
       accentColor = AppColors.danger;
-      gradientStart = AppColors.danger.withValues(alpha: 0.04);
-      gradientEnd = AppColors.danger.withValues(alpha: 0.01);
+      gradientStart = AppColors.danger.withAlpha(10);
+      gradientEnd = AppColors.danger.withAlpha(2);
     }
 
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: accentColor.withValues(alpha: 0.2), width: 1.5),
+        side: BorderSide(color: accentColor.withAlpha(50), width: 1.5),
       ),
       clipBehavior: Clip.antiAlias,
       child: Container(
@@ -61,7 +63,7 @@ class ProductCard extends ConsumerWidget {
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: accentColor.withValues(alpha: 0.1),
+                    color: accentColor.withAlpha(25),
                     width: 1,
                   ),
                 ),
@@ -78,7 +80,7 @@ class ProductCard extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: AppColors.surface,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: accentColor.withValues(alpha: 0.15)),
+                    border: Border.all(color: accentColor.withAlpha(40)),
                   ),
                   child: Row(
                     children: [
@@ -146,11 +148,19 @@ class ProductCard extends ConsumerWidget {
                     product.expiredDate.isNotEmpty ? product.expiredDate : '-',
                     isImportant: safety == 'KEDALUWARSA',
                   ),
-                  _buildWarningsIfAny(context),
+
+                  // Halal Certification Status Card
+                  if (product.isFound) ...[
+                    const SizedBox(height: 12),
+                    _buildHalalSection(context),
+                  ],
+
+                  // Detailed Skin Safety & Ingredient Analysis
                   if (product.ingredients.isNotEmpty) ...[
                     const Divider(height: 32, thickness: 1),
-                    _buildIngredientsSection(product.ingredients),
+                    _buildDetailedIngredientsSection(context, product.ingredients),
                   ],
+
                   _buildPaoSection(context, ref),
                 ],
               ),
@@ -175,7 +185,7 @@ class ProductCard extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: accentColor.withValues(alpha: 0.1),
+                color: accentColor.withAlpha(25),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
@@ -234,7 +244,7 @@ class ProductCard extends ConsumerWidget {
             size: 20,
             color: isImportant
                 ? AppColors.danger
-                : AppColors.primary.withValues(alpha: 0.7),
+                : AppColors.primary.withAlpha(180),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -268,7 +278,105 @@ class ProductCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildIngredientsSection(String ingredients) {
+  Widget _buildHalalSection(BuildContext context) {
+    final halalResult = HalalService.checkProductHalal(product);
+    final isCertified = halalResult.isCertified;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isCertified ? AppColors.success.withAlpha(15) : AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isCertified ? AppColors.success.withAlpha(60) : Colors.grey.shade300,
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isCertified ? AppColors.success.withAlpha(30) : Colors.grey.shade100,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.verified_user_rounded,
+                  color: isCertified ? AppColors.success : AppColors.primary,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Sertifikasi Halal Indonesia',
+                      style: GoogleFonts.lexend(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      halalResult.agency,
+                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isCertified ? AppColors.success : AppColors.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  halalResult.status,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            halalResult.description,
+            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.3),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () async {
+              final uri = Uri.parse(halalResult.officialVerificationUrl);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              }
+            },
+            icon: const Icon(Icons.open_in_new_rounded, size: 16),
+            label: Text(
+              'Cek Database Resmi BPJPH Kemenag',
+              style: GoogleFonts.lexend(fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 38),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailedIngredientsSection(BuildContext context, String ingredients) {
+    final analysis = IngredientsAnalyzer.analyzeDetailed(ingredients);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -277,12 +385,12 @@ class ProductCard extends ConsumerWidget {
             Icon(
               Icons.science_rounded,
               size: 20,
-              color: AppColors.primary.withValues(alpha: 0.7),
+              color: AppColors.primary.withAlpha(180),
             ),
-            const SizedBox(width: 12),
-            const Text(
-              'Komposisi / Bahan Kandungan',
-              style: TextStyle(
+            const SizedBox(width: 10),
+            Text(
+              'Analisis Formulasi & Skin Safety',
+              style: GoogleFonts.lexend(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
@@ -290,7 +398,54 @@ class ProductCard extends ConsumerWidget {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
+
+        // Quick Indicators Wrap
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _buildSafetyPill(
+              label: analysis.isSafeFromToxins ? 'Bebas Racun BPOM' : 'Zat Berbahaya!',
+              isSafe: analysis.isSafeFromToxins,
+              icon: Icons.shield_rounded,
+            ),
+            _buildSafetyPill(
+              label: analysis.isPregnancySafe ? 'Bumil & Busui Safe' : 'Hindari Bumil',
+              isSafe: analysis.isPregnancySafe,
+              icon: Icons.pregnant_woman_rounded,
+            ),
+            _buildSafetyPill(
+              label: analysis.isFungalAcneSafe ? 'Fungal Acne Safe' : 'Picu Fungal Acne',
+              isSafe: analysis.isFungalAcneSafe,
+              icon: Icons.spa_rounded,
+            ),
+            _buildSafetyPill(
+              label: analysis.isSensitiveSkinSafe ? 'Kulit Sensitif Safe' : 'Ada Alergen/Parfum',
+              isSafe: analysis.isSensitiveSkinSafe,
+              icon: Icons.face_retouching_natural_rounded,
+            ),
+          ],
+        ),
+
+        // Warnings list if any
+        if (analysis.totalWarnings > 0) ...[
+          const SizedBox(height: 14),
+          _buildWarningBox(analysis),
+        ],
+
+        // Internal conflict if any
+        if (analysis.hasConflicts) ...[
+          const SizedBox(height: 12),
+          _buildInternalConflictBox(analysis.internalConflicts),
+        ],
+
+        const SizedBox(height: 12),
+        const Text(
+          'Daftar Komposisi Lengkap:',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: 6),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(12),
@@ -301,7 +456,7 @@ class ProductCard extends ConsumerWidget {
           child: Text(
             ingredients,
             style: const TextStyle(
-              fontSize: 13,
+              fontSize: 12,
               color: AppColors.textPrimary,
               height: 1.4,
             ),
@@ -311,68 +466,121 @@ class ProductCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildWarningsIfAny(BuildContext context) {
-    final warnings = IngredientsAnalyzer.analyze(product.ingredients);
-    if (warnings.isEmpty) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.dangerLight.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.danger.withValues(alpha: 0.3), width: 1.5),
+  Widget _buildSafetyPill({required String label, required bool isSafe, required IconData icon}) {
+    final color = isSafe ? AppColors.success : AppColors.danger;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withAlpha(20),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withAlpha(50)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWarningBox(IngredientAnalysisResult analysis) {
+    final allWarnings = [
+      ...analysis.dangerousIngredients,
+      ...analysis.pregnancyWarnings,
+      ...analysis.fungalAcneTriggers,
+      ...analysis.allergenAndSensitivities,
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.dangerLight.withAlpha(20),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.danger.withAlpha(50)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
+              const Icon(Icons.warning_amber_rounded, color: AppColors.danger, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Catatan Perhatian Komposisi (${allWarnings.length})',
+                style: GoogleFonts.lexend(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.danger,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ...allWarnings.map((w) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.gavel_rounded, color: AppColors.danger, size: 20),
-                  const SizedBox(width: 8),
                   Text(
-                    'PERINGATAN KANDUNGAN!',
-                    style: GoogleFonts.lexend(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.danger,
-                    ),
+                    '• [${w.category}] ${w.chemicalName}',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  ),
+                  Text(
+                    w.description,
+                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.25),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              ...warnings.map((warn) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '• ${warn.chemicalName}',
-                      style: GoogleFonts.lexend(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      warn.description,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                        height: 1.3,
-                      ),
-                    ),
-                  ],
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInternalConflictBox(List<SkincareConflict> conflicts) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.orange.withAlpha(20),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.withAlpha(60)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.flash_on_rounded, color: Colors.orange, size: 18),
+              const SizedBox(width: 6),
+              Text(
+                'Peringatan Interaksi Formulasi',
+                style: GoogleFonts.lexend(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange.shade900,
                 ),
-              )),
+              ),
             ],
           ),
-        ),
-      ],
+          const SizedBox(height: 6),
+          ...conflicts.map((c) => Text(
+            '• ${c.title}: ${c.description}',
+            style: const TextStyle(fontSize: 11, color: AppColors.textPrimary, height: 1.3),
+          )),
+        ],
+      ),
     );
   }
 
@@ -389,7 +597,7 @@ class ProductCard extends ConsumerWidget {
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: AppColors.border.withValues(alpha: 0.8),
+            color: AppColors.border.withAlpha(200),
             style: BorderStyle.solid,
             width: 1.5,
           ),
@@ -400,7 +608,7 @@ class ProductCard extends ConsumerWidget {
               children: [
                 Icon(
                   Icons.hourglass_empty_rounded,
-                  color: AppColors.primary.withValues(alpha: 0.7),
+                  color: AppColors.primary.withAlpha(180),
                   size: 20,
                 ),
                 const SizedBox(width: 8),
@@ -477,9 +685,9 @@ class ProductCard extends ConsumerWidget {
       margin: const EdgeInsets.only(top: 24),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: statusBgColor.withValues(alpha: 0.1),
+        color: statusBgColor.withAlpha(25),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: statusColor.withValues(alpha: 0.3), width: 1.5),
+        border: Border.all(color: statusColor.withAlpha(70), width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -506,7 +714,7 @@ class ProductCard extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.15),
+                      color: statusColor.withAlpha(35),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -542,7 +750,7 @@ class ProductCard extends ConsumerWidget {
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: AppColors.border.withValues(alpha: 0.5),
+              backgroundColor: AppColors.border.withAlpha(120),
               color: statusColor,
               minHeight: 8,
             ),
@@ -640,9 +848,9 @@ class ProductCard extends ConsumerWidget {
       margin: const EdgeInsets.only(top: 14),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.warning.withValues(alpha: 0.1),
+        color: AppColors.warning.withAlpha(25),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
+        border: Border.all(color: AppColors.warning.withAlpha(100)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../core/constants/app_colors.dart';
 import '../providers/settings_provider.dart';
+import 'ocr_scanner_screen.dart';
 import 'result_screen.dart';
 
 class ScannerScreen extends ConsumerStatefulWidget {
@@ -107,38 +108,33 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> with SingleTicker
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-      
-      if (image == null) return;
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Row(
-              children: [
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                ),
-                SizedBox(width: 16),
-                Text('Menganalisis gambar...'),
-              ],
-            ),
-            duration: Duration(seconds: 1),
-          ),
-        );
-      }
-
-      final bool isSuccess = await _cameraController.analyzeImage(image.path);
-
-      if (!isSuccess) {
+      if (image != null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Tidak menemukan kode BPOM/barcode pada gambar.',
-                style: GoogleFonts.lexend(fontSize: 13, fontWeight: FontWeight.bold),
+            const SnackBar(
+              content: Row(
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  ),
+                  SizedBox(width: 16),
+                  Text('Menganalisis barcode gambar...'),
+                ],
               ),
+              duration: Duration(seconds: 1),
+            ),
+          );
+        }
+
+        final bool isSuccess = await _cameraController.analyzeImage(image.path);
+
+        if (!isSuccess && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Tidak menemukan barcode pada gambar. Coba gunakan tombol "Scan Teks OCR".'),
               backgroundColor: AppColors.danger,
             ),
           );
@@ -157,7 +153,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> with SingleTicker
   }
 
   void _showManualInputDialog() {
-    final TextEditingController manualController = TextEditingController();
+    final controller = TextEditingController();
     showDialog(
       context: context,
       builder: (context) {
@@ -167,16 +163,31 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> with SingleTicker
             'Input Manual',
             style: GoogleFonts.lexend(fontWeight: FontWeight.bold),
           ),
-          content: TextField(
-            controller: manualController,
-            textCapitalization: TextCapitalization.characters,
-            decoration: InputDecoration(
-              hintText: 'NA18260102268',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Masukkan nomor registrasi BPOM yang tertera di kemasan produk:',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                textCapitalization: TextCapitalization.characters,
+                decoration: InputDecoration(
+                  hintText: 'NA18260102268',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+              ),
+            ],
           ),
           actions: [
             TextButton(
@@ -188,9 +199,9 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> with SingleTicker
             ),
             ElevatedButton(
               onPressed: () {
-                final code = manualController.text.trim();
+                final code = controller.text.trim();
                 if (code.isNotEmpty) {
-                  Navigator.pop(context); // Close dialog
+                  Navigator.pop(context);
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
@@ -228,7 +239,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> with SingleTicker
           // 2. Camera Overlay (Darkened outer borders)
           ColorFiltered(
             colorFilter: ColorFilter.mode(
-              Colors.black.withValues(alpha: 0.5),
+              Colors.black.withAlpha(130),
               BlendMode.srcOut,
             ),
             child: Stack(
@@ -250,14 +261,13 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> with SingleTicker
             ),
           ),
 
-          // 3. Scan Target Border Lines (Interactive corner brackets)
+          // 3. Scan Target Border Lines
           Center(
             child: SizedBox(
               width: scanAreaSize,
               height: scanAreaSize,
               child: Stack(
                 children: [
-                  // Top Left Corner Bracket
                   Positioned(
                     top: 0,
                     left: 0,
@@ -273,7 +283,6 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> with SingleTicker
                       ),
                     ),
                   ),
-                  // Top Right Corner Bracket
                   Positioned(
                     top: 0,
                     right: 0,
@@ -289,7 +298,6 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> with SingleTicker
                       ),
                     ),
                   ),
-                  // Bottom Left Corner Bracket
                   Positioned(
                     bottom: 0,
                     left: 0,
@@ -305,7 +313,6 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> with SingleTicker
                       ),
                     ),
                   ),
-                  // Bottom Right Corner Bracket
                   Positioned(
                     bottom: 0,
                     right: 0,
@@ -321,24 +328,29 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> with SingleTicker
                       ),
                     ),
                   ),
-                  // Animated Scanning Line
+
+                  // Animated Red/Green Laser Line
                   AnimatedBuilder(
                     animation: _scannerLineAnimation,
                     builder: (context, child) {
-                      final topOffset = _scannerLineAnimation.value * (scanAreaSize - 4);
                       return Positioned(
-                        top: topOffset,
+                        top: _scannerLineAnimation.value * (scanAreaSize - 4),
                         left: 8,
                         right: 8,
                         child: Container(
                           height: 3,
                           decoration: BoxDecoration(
-                            color: _isScanCompleted ? AppColors.success : AppColors.primary,
-                            borderRadius: BorderRadius.circular(2),
+                            gradient: LinearGradient(
+                              colors: [
+                                (_isScanCompleted ? AppColors.success : AppColors.danger).withAlpha(0),
+                                (_isScanCompleted ? AppColors.success : AppColors.danger),
+                                (_isScanCompleted ? AppColors.success : AppColors.danger).withAlpha(0),
+                              ],
+                            ),
                             boxShadow: [
                               BoxShadow(
-                                color: (_isScanCompleted ? AppColors.success : AppColors.primary).withValues(alpha: 0.8),
-                                blurRadius: 8,
+                                color: (_isScanCompleted ? AppColors.success : AppColors.danger).withAlpha(150),
+                                blurRadius: 10,
                                 spreadRadius: 2,
                               ),
                             ],
@@ -352,30 +364,30 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> with SingleTicker
             ),
           ),
 
-          // Zoom Toggle Button overlay (placed just below the scanning frame)
+          // Zoom Multiplier Button
           Positioned(
-            top: size.height / 2 + scanAreaSize / 2 + 16,
-            left: 0,
-            right: 0,
-            child: Center(
+            right: 24,
+            top: MediaQuery.of(context).size.height * 0.45,
+            child: Material(
+              color: Colors.transparent,
               child: InkWell(
                 onTap: _toggleZoom,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(24),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
+                    color: Colors.black.withAlpha(150),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: Colors.white24, width: 1),
                   ),
-                  child: Row(
+                  child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.zoom_in_rounded, color: Colors.white, size: 18),
-                      const SizedBox(width: 6),
+                      const Icon(Icons.zoom_in_rounded, color: Colors.white, size: 20),
+                      const SizedBox(height: 2),
                       Text(
                         _getZoomText(),
-                        style: GoogleFonts.lexend(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -413,6 +425,16 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> with SingleTicker
                     Row(
                       children: [
                         IconButton(
+                          icon: const Icon(Icons.document_scanner_rounded, color: Colors.white),
+                          tooltip: 'Scan Teks OCR',
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const OcrScannerScreen()),
+                            );
+                          },
+                        ),
+                        IconButton(
                           icon: const Icon(Icons.photo_library_rounded, color: Colors.white),
                           tooltip: 'Pilih dari Galeri',
                           onPressed: _scanImageFromGallery,
@@ -449,23 +471,55 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> with SingleTicker
             ),
           ),
 
-          // 5. Manual Input CTA (Bottom)
+          // 5. Dual Action Buttons (Bottom)
           Positioned(
             bottom: 48,
-            left: 32,
-            right: 32,
-            child: ElevatedButton.icon(
-              onPressed: _showManualInputDialog,
-              icon: const Icon(Icons.keyboard_alt_rounded),
-              label: const Text('Input Manual Nomor BPOM'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                minimumSize: const Size(double.infinity, 54),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+            left: 24,
+            right: 24,
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const OcrScannerScreen()),
+                      );
+                    },
+                    icon: const Icon(Icons.document_scanner_rounded, color: Colors.white, size: 18),
+                    label: const Text(
+                      'Scan Teks OCR',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.white, width: 1.5),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _showManualInputDialog,
+                    icon: const Icon(Icons.keyboard_alt_rounded, size: 18),
+                    label: const Text(
+                      'Input Manual',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

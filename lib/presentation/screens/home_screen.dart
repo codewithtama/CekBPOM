@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
 import '../providers/history_provider.dart';
 import '../providers/tab_provider.dart';
+import 'ocr_scanner_screen.dart';
+import 'search_screen.dart';
 import 'scanner_screen.dart';
 import 'result_screen.dart';
 
@@ -95,7 +97,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _processManualInput(String code) {
-    // Navigate directly to result screen, which will trigger the loading and display results
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -164,7 +165,66 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
+
+              // Search Bar Shortcut (Multi-Mode Search)
+              InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SearchScreen(),
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade300),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(5),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.search_rounded, color: AppColors.primary, size: 22),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Cari nama produk, merk, atau pabrik...',
+                          style: GoogleFonts.lexend(
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withAlpha(20),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'Cari',
+                          style: GoogleFonts.lexend(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
 
               // Scan Card Action Banner
               Container(
@@ -179,7 +239,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.3),
+                      color: AppColors.primary.withAlpha(70),
                       blurRadius: 16,
                       offset: const Offset(0, 8),
                     ),
@@ -244,28 +304,72 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
-              // Manual Input Shortcut
-              OutlinedButton(
-                onPressed: _showManualInputDialog,
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 52),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.keyboard_alt_rounded),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Input Manual Nomor BPOM',
-                      style: GoogleFonts.lexend(fontWeight: FontWeight.bold),
+              // Dual Action Grid: OCR Text Scan & Manual Input
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const OcrScannerScreen(),
+                          ),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        side: const BorderSide(color: AppColors.primary, width: 1.5),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.document_scanner_rounded, color: AppColors.primary, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Scan Teks OCR',
+                            style: GoogleFonts.lexend(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _showManualInputDialog,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.keyboard_alt_rounded, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Input Manual',
+                            style: GoogleFonts.lexend(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 36),
 
@@ -287,10 +391,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppColors.border.withValues(alpha: 0.5), width: 1.5),
+                  border: Border.all(color: AppColors.border.withAlpha(120), width: 1.5),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.02),
+                      color: Colors.black.withAlpha(5),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -376,8 +480,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 1.5),
-                  color: AppColors.primaryLight.withValues(alpha: 0.1),
+                  border: Border.all(color: AppColors.primary.withAlpha(50), width: 1.5),
+                  color: AppColors.primaryLight.withAlpha(25),
                 ),
                 child: InkWell(
                   onTap: () {
@@ -504,7 +608,7 @@ class DonutChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final double strokeWidth = 10.0;
+    const double strokeWidth = 10.0;
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - strokeWidth) / 2;
 
@@ -515,7 +619,7 @@ class DonutChartPainter extends CustomPainter {
 
     final total = safeCount + warningCount + dangerCount;
     if (total == 0) {
-      paintBase.color = AppColors.border.withValues(alpha: 0.5);
+      paintBase.color = AppColors.border.withAlpha(120);
       canvas.drawCircle(center, radius, paintBase);
       return;
     }
@@ -524,25 +628,22 @@ class DonutChartPainter extends CustomPainter {
     final double warningSweep = (warningCount / total) * 360;
     final double dangerSweep = (dangerCount / total) * 360;
 
-    double startAngle = -90.0; // Start at top center
+    double startAngle = -90.0;
 
     final rect = Rect.fromCircle(center: center, radius: radius);
 
-    // Draw Success/Aman
     if (safeSweep > 0) {
       paintBase.color = AppColors.success;
       canvas.drawArc(rect, _degToRad(startAngle), _degToRad(safeSweep), false, paintBase);
       startAngle += safeSweep;
     }
 
-    // Draw Warning/Cek Ulang
     if (warningSweep > 0) {
       paintBase.color = AppColors.warning;
       canvas.drawArc(rect, _degToRad(startAngle), _degToRad(warningSweep), false, paintBase);
       startAngle += warningSweep;
     }
 
-    // Draw Danger/Palsu
     if (dangerSweep > 0) {
       paintBase.color = AppColors.danger;
       canvas.drawArc(rect, _degToRad(startAngle), _degToRad(dangerSweep), false, paintBase);

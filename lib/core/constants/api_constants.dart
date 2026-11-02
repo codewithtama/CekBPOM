@@ -12,4 +12,8 @@ class ApiConstants {
   
   // BPOM news RSS fallback/static source URL
   static const String bpomNewsUrl = 'https://www.pom.go.id/berita';
+
+  // BPJPH Kemenag RI Halal Portal
+  static const String bpjphHalalSearchUrl = 'https://info.halal.go.id/cari/';
+  static const String kemenagHalalPortalUrl = 'https://halal.go.id/';
 }

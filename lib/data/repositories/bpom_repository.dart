@@ -43,10 +43,34 @@ class BpomRepository {
     // Online mode: fetch from API/scraper
     final result = await _apiService.checkProduct(cleaned);
     
-    // Cache the result into scan history
-    await _historyService.addHistory(result.product);
+    // Cache the result into scan history if found
+    if (result.product.isFound) {
+      await _historyService.addHistory(result.product);
+    }
     
     return result;
+  }
+
+  /// Searches products in BPOM database with query filter and pagination
+  Future<BpomSearchResponse> searchProducts({
+    required String query,
+    required BpomSearchType searchType,
+    int start = 0,
+    int length = 20,
+  }) async {
+    final hasConnection = await ConnectivityHelper.isConnected();
+    if (!hasConnection) {
+      throw Exception('Pencarian database BPOM membutuhkan koneksi internet aktif.');
+    }
+
+    final response = await _apiService.searchProducts(
+      query: query,
+      searchType: searchType,
+      start: start,
+      length: length,
+    );
+
+    return response;
   }
 
   /// Fetches live news from BPOM with offline fallback to critical warning alerts

@@ -5,8 +5,58 @@ import '../models/product_lookup_result.dart';
 import '../models/news_model.dart';
 import '../models/product_model.dart';
 
+enum BpomSearchType {
+  registrationNumber,
+  productName,
+  brand,
+  manufacturer,
+}
+
+extension BpomSearchTypeExtension on BpomSearchType {
+  String get label {
+    switch (this) {
+      case BpomSearchType.registrationNumber:
+        return 'No. Registrasi';
+      case BpomSearchType.productName:
+        return 'Nama Produk';
+      case BpomSearchType.brand:
+        return 'Merk / Brand';
+      case BpomSearchType.manufacturer:
+        return 'Pendaftar / Pabrik';
+    }
+  }
+
+  String get hintText {
+    switch (this) {
+      case BpomSearchType.registrationNumber:
+        return 'Contoh: NA18210100001 atau MD2409...';
+      case BpomSearchType.productName:
+        return 'Contoh: Serum Acne, Susu UHT, Paracetamol...';
+      case BpomSearchType.brand:
+        return 'Contoh: Wardah, Indomie, Somethinc...';
+      case BpomSearchType.manufacturer:
+        return 'Contoh: PT Paragon, PT Indofood...';
+    }
+  }
+}
+
+class BpomSearchResponse {
+  final List<ProductModel> products;
+  final int totalRecords;
+  final int filteredRecords;
+
+  const BpomSearchResponse({
+    required this.products,
+    required this.totalRecords,
+    required this.filteredRecords,
+  });
+}
+
 class BpomApiService {
   final Dio _dio;
+  String? _cachedCookieHeader;
+  String? _cachedCsrfToken;
+  DateTime? _sessionTimestamp;
 
   BpomApiService({Dio? dio}) : _dio = dio ?? _createDefaultDio();
 
@@ -23,96 +73,115 @@ class BpomApiService {
     );
   }
 
-  /// Verifies authenticity of a product registration number
-  Future<ProductLookupResult> checkProduct(String code) async {
-    developer.log('Checking product: $code', name: 'BpomApiService');
+  Future<void> _ensureSession({bool forceRefresh = false}) async {
+    final now = DateTime.now();
+    if (!forceRefresh &&
+        _cachedCookieHeader != null &&
+        _cachedCsrfToken != null &&
+        _sessionTimestamp != null &&
+        now.difference(_sessionTimestamp!) < const Duration(minutes: 8)) {
+      return;
+    }
 
-    // The public api-cekbpom.pom.go.id host no longer resolves, so the
-    // official cekbpom portal is the only live data source.
-    return _scrapeProduct(code);
-  }
+    developer.log('Fetching session cookies & CSRF token from BPOM portal', name: 'BpomApiService');
+    final getResponse = await _dio.get(
+      ApiConstants.fallbackAllProdukUrl,
+      options: Options(
+        headers: {
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+        },
+      ),
+    );
 
-  /// Scrapes product from official website's DataTable endpoint
-  Future<ProductLookupResult> _scrapeProduct(String code) async {
-    try {
-      // Step A: Perform GET to retrieve session cookies and CSRF token
-      developer.log('Step A: Fetching session cookies & CSRF token from all-produk page', name: 'BpomApiService');
-      final getResponse = await _dio.get(
-        ApiConstants.fallbackAllProdukUrl,
-        options: Options(
-          headers: {
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-          },
-        ),
+    if (getResponse.statusCode != 200) {
+      throw DioException(
+        requestOptions: getResponse.requestOptions,
+        response: getResponse,
+        message: 'Gagal mengakses portal BPOM (Status: ${getResponse.statusCode})',
       );
+    }
 
-      if (getResponse.statusCode != 200) {
-        throw DioException(
-          requestOptions: getResponse.requestOptions,
-          response: getResponse,
-          message: 'Failed to access BPOM web portal (Status: ${getResponse.statusCode})',
-        );
-      }
+    final setCookies = getResponse.headers['set-cookie'];
+    String? sessionCookie;
+    String? xsrfCookie;
 
-      // Extract cookies from response headers
-      final setCookies = getResponse.headers['set-cookie'];
-      String? sessionCookie;
-      String? xsrfCookie;
-      
-      if (setCookies != null) {
-        for (var cookie in setCookies) {
-          if (cookie.contains('webreg_session')) {
-            sessionCookie = cookie.split(';').first;
-          }
-          if (cookie.contains('XSRF-TOKEN')) {
-            xsrfCookie = cookie.split(';').first;
-          }
+    if (setCookies != null) {
+      for (var cookie in setCookies) {
+        if (cookie.contains('webreg_session')) {
+          sessionCookie = cookie.split(';').first;
+        }
+        if (cookie.contains('XSRF-TOKEN')) {
+          xsrfCookie = cookie.split(';').first;
         }
       }
+    }
 
-      final cookieHeader = [xsrfCookie, sessionCookie]
-          .where((c) => c != null && c.isNotEmpty)
-          .join('; ');
+    _cachedCookieHeader = [xsrfCookie, sessionCookie]
+        .where((c) => c != null && c.isNotEmpty)
+        .join('; ');
 
-      if (cookieHeader.isEmpty) {
-        developer.log('Warning: No cookies extracted from BPOM response', name: 'BpomApiService');
-      } else {
-        developer.log('Extracted cookie header successfully', name: 'BpomApiService');
-      }
+    final html = getResponse.data.toString();
+    final csrfRegex = RegExp(r'name="csrf-token"\s+content="([^"]+)"');
+    final csrfMatch = csrfRegex.firstMatch(html);
+    _cachedCsrfToken = csrfMatch?.group(1);
 
-      // Extract CSRF token from HTML
-      final html = getResponse.data.toString();
-      final csrfRegex = RegExp(r'name="csrf-token"\s+content="([^"]+)"');
-      final csrfMatch = csrfRegex.firstMatch(html);
-      final csrfToken = csrfMatch?.group(1);
+    if (_cachedCsrfToken == null || _cachedCsrfToken!.isEmpty) {
+      throw Exception('Gagal mendapatkan token keamanan (CSRF) dari portal BPOM.');
+    }
 
-      if (csrfToken == null || csrfToken.isEmpty) {
-        throw Exception('Failed to parse security token (CSRF) from BPOM portal.');
-      }
-      developer.log('Successfully parsed CSRF token: $csrfToken', name: 'BpomApiService');
+    _sessionTimestamp = now;
+    developer.log('BPOM session initialized successfully', name: 'BpomApiService');
+  }
 
-      // Step B: POST search payload to DataTables endpoint
-      developer.log('Step B: POSTing query to DT endpoint', name: 'BpomApiService');
-      
+  /// Searches products in BPOM database with pagination and field filters
+  Future<BpomSearchResponse> searchProducts({
+    required String query,
+    required BpomSearchType searchType,
+    int start = 0,
+    int length = 20,
+    bool isRetry = false,
+  }) async {
+    try {
+      await _ensureSession(forceRefresh: isRetry);
+
       final postHeaders = {
-        'X-CSRF-TOKEN': csrfToken,
+        'X-CSRF-TOKEN': _cachedCsrfToken ?? '',
         'Referer': ApiConstants.fallbackAllProdukUrl,
         'Accept': 'application/json, text/javascript, */*; q=0.01',
         'X-Requested-With': 'XMLHttpRequest',
-        'Cookie': cookieHeader,
+        'Cookie': _cachedCookieHeader ?? '',
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
       };
 
-      // Exact parameter naming mapped by metronic/jquery datatables server-side processing
+      String regQuery = '';
+      String nameQuery = '';
+      String brandQuery = '';
+      String mfgQuery = '';
+
+      switch (searchType) {
+        case BpomSearchType.registrationNumber:
+          regQuery = query.trim();
+          break;
+        case BpomSearchType.productName:
+          nameQuery = query.trim();
+          break;
+        case BpomSearchType.brand:
+          brandQuery = query.trim();
+          break;
+        case BpomSearchType.manufacturer:
+          mfgQuery = query.trim();
+          break;
+      }
+
       final data = {
         'draw': '1',
-        'start': '0',
-        'length': '10',
+        'start': start.toString(),
+        'length': length.toString(),
         'search[value]': '',
         'search[regex]': 'false',
-        'product_register': code,
-        'product_name': '',
-        'product_brand': '',
+        'product_register': regQuery,
+        'product_name': nameQuery,
+        'product_brand': brandQuery,
         'product_package': '',
         'product_form': '',
         'ingredients': '',
@@ -122,7 +191,7 @@ class BpomApiService {
         'product_date_end': '',
         'expire_date_start': '',
         'expire_date_end': '',
-        'manufacturer_name': '',
+        'manufacturer_name': mfgQuery,
         'status': '',
         'release_date': '',
         'query': '',
@@ -142,41 +211,69 @@ class BpomApiService {
       if (postResponse.statusCode == 200 && postResponse.data != null) {
         final responseData = postResponse.data;
         if (responseData is Map<String, dynamic>) {
-          final recordsFiltered = responseData['recordsFiltered'] ?? 0;
+          final totalRecords = (responseData['recordsTotal'] as num?)?.toInt() ?? 0;
+          final filteredRecords = (responseData['recordsFiltered'] as num?)?.toInt() ?? 0;
           final List<dynamic> dataList = responseData['data'] ?? [];
 
-          developer.log('DataTable results filtered count: $recordsFiltered', name: 'BpomApiService');
+          final products = dataList
+              .whereType<Map<String, dynamic>>()
+              .map((item) => ProductModel.fromJson(item))
+              .toList();
 
-          if (dataList.isNotEmpty) {
-            // Found matched product, map the first result
-            developer.log('Product registration found in BPOM database!', name: 'BpomApiService');
-            return ProductLookupResult(
-              product: ProductModel.fromJson(dataList.first as Map<String, dynamic>),
-              sourceLabel: 'BPOM',
-            );
-          } else {
-            // Not found in database
-            developer.log('Product not found in BPOM database.', name: 'BpomApiService');
-            return ProductLookupResult(
-              product: ProductModel.notFound(code),
-              sourceLabel: 'BPOM',
-            );
-          }
+          return BpomSearchResponse(
+            products: products,
+            totalRecords: totalRecords,
+            filteredRecords: filteredRecords,
+          );
         }
       }
-      
-      throw Exception('Invalid response layout returned by BPOM server.');
+
+      throw Exception('Format respon BPOM tidak sesuai standar.');
     } on DioException catch (dioErr) {
-      developer.log('Dio network error during fallback scraping', name: 'BpomApiService', error: dioErr);
-      
+      if (!isRetry && (dioErr.response?.statusCode == 419 || dioErr.response?.statusCode == 401)) {
+        developer.log('Session expired, refreshing and retrying search...', name: 'BpomApiService');
+        return searchProducts(
+          query: query,
+          searchType: searchType,
+          start: start,
+          length: length,
+          isRetry: true,
+        );
+      }
+
+      developer.log('Dio network error during search', name: 'BpomApiService', error: dioErr);
       if (dioErr.type == DioExceptionType.connectionTimeout ||
           dioErr.type == DioExceptionType.receiveTimeout) {
-        throw Exception('Koneksi lambat, silakan coba lagi beberapa saat.');
+        throw Exception('Koneksi lambat, silakan coba beberapa saat lagi.');
       }
       throw Exception('Gagal menghubungi portal BPOM: ${dioErr.message}');
     } catch (e) {
-      developer.log('Unexpected error during fallback scraping', name: 'BpomApiService', error: e);
-      throw Exception('Gagal melakukan pengecekan produk. Silakan periksa koneksi internet Anda.');
+      developer.log('Unexpected error during BPOM search', name: 'BpomApiService', error: e);
+      throw Exception('Gagal memproses pencarian. Periksa koneksi internet Anda.');
+    }
+  }
+
+  /// Verifies authenticity of a product registration number
+  Future<ProductLookupResult> checkProduct(String code) async {
+    developer.log('Checking product registration: $code', name: 'BpomApiService');
+
+    final searchResult = await searchProducts(
+      query: code,
+      searchType: BpomSearchType.registrationNumber,
+      start: 0,
+      length: 10,
+    );
+
+    if (searchResult.products.isNotEmpty) {
+      return ProductLookupResult(
+        product: searchResult.products.first,
+        sourceLabel: 'BPOM',
+      );
+    } else {
+      return ProductLookupResult(
+        product: ProductModel.notFound(code),
+        sourceLabel: 'BPOM',
+      );
     }
   }
 
@@ -200,26 +297,20 @@ class BpomApiService {
       final html = response.data.toString();
       final List<NewsModel> newsList = [];
 
-      // Find all <article> tags
       final articleRegex = RegExp(r'<article[^>]*>(.*?)</article>', caseSensitive: false, dotAll: true);
       final matches = articleRegex.allMatches(html);
-
-      developer.log('Found ${matches.length} article blocks in HTML', name: 'BpomApiService');
 
       for (final match in matches) {
         final block = match.group(1) ?? '';
 
-        // Extract Title from card-title h5
         final titleRegex = RegExp(r'<h5 class="card-title">(.*?)</h5>', caseSensitive: false, dotAll: true);
         final titleMatch = titleRegex.firstMatch(block);
         String title = '';
         if (titleMatch != null) {
           title = titleMatch.group(1) ?? '';
-          // Remove all HTML tags
           title = title.replaceAll(RegExp(r'<[^>]+>'), '').trim();
         }
 
-        // Extract Link
         final linkRegex = RegExp(r'href="(/berita/[^"]+)"', caseSensitive: false);
         final linkMatch = linkRegex.firstMatch(block);
         String url = '';
@@ -228,7 +319,6 @@ class BpomApiService {
           url = 'https://www.pom.go.id$relPath';
         }
 
-        // Extract Image
         final imgRegex = RegExp(r'<img[^>]*src="([^"]+)"', caseSensitive: false);
         final imgMatch = imgRegex.firstMatch(block);
         String imageUrl = '';
@@ -236,7 +326,6 @@ class BpomApiService {
           imageUrl = imgMatch.group(1) ?? '';
         }
 
-        // Extract Date
         final dateRegex = RegExp(r'bi-clock.*?<small>(.*?)</small>', caseSensitive: false, dotAll: true);
         final dateMatch = dateRegex.firstMatch(block);
         String date = '';
@@ -244,13 +333,11 @@ class BpomApiService {
           date = (dateMatch.group(1) ?? '').trim();
         }
 
-        // Extract Description/Snippet
         final descRegex = RegExp(r'<p class="card-text[^"]*">(.*?)</p>', caseSensitive: false, dotAll: true);
         final descMatch = descRegex.firstMatch(block);
         String description = '';
         if (descMatch != null) {
           description = descMatch.group(1) ?? '';
-          // Clean html tags and entities
           description = description.replaceAll(RegExp(r'<[^>]+>'), '').trim();
           description = description
               .replaceAll('&ndash;', '–')

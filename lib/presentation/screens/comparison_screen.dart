@@ -26,10 +26,13 @@ class ComparisonScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Determine common ingredients
     final listA = _parseIngredients(productA.ingredients);
     final listB = _parseIngredients(productB.ingredients);
     final commonIngredients = listA.toSet().intersection(listB.toSet()).toList();
+    final conflicts = IngredientsAnalyzer.checkCrossProductConflicts(
+      productA.ingredients,
+      productB.ingredients,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -116,6 +119,10 @@ class ComparisonScreen extends StatelessWidget {
                   ),
 
                   const SizedBox(height: 24),
+                  _buildComparisonSectionTitle('Peringatan Interaksi & Konflik Bahan'),
+                  _buildConflictSection(conflicts),
+
+                  const SizedBox(height: 20),
                   _buildComparisonSectionTitle('Analisis Kandungan (Komposisi)'),
                   
                   // Danger Chemical Warnings
@@ -158,6 +165,113 @@ class ComparisonScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildConflictSection(List<SkincareConflict> conflicts) {
+    if (conflicts.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.success.withAlpha(20),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.success.withAlpha(50)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 22),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Tidak ditemukan konflik bahan aktif agresif. Kedua produk relatif aman digunakan bersamaan.',
+                style: GoogleFonts.lexend(
+                  fontSize: 12,
+                  color: AppColors.success,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: conflicts.map((conflict) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.dangerLight.withAlpha(25),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.danger.withAlpha(70)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.warning_amber_rounded, color: AppColors.danger, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'KONFLIK: ${conflict.itemA} + ${conflict.itemB}',
+                      style: GoogleFonts.lexend(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.danger,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.danger,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      conflict.severity,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                conflict.description,
+                style: const TextStyle(fontSize: 12, color: AppColors.textPrimary, height: 1.3),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.tips_and_updates_outlined, size: 16, color: AppColors.primary),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'Saran: ${conflict.recommendation}',
+                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.3),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
   Widget _buildHeaderCard(ProductModel product) {
     Color statusColor;
     final safety = product.safetyStatus;
@@ -175,10 +289,10 @@ class ComparisonScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: statusColor.withValues(alpha: 0.3), width: 1.5),
+        border: Border.all(color: statusColor.withAlpha(70), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withAlpha(5),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -201,11 +315,11 @@ class ComparisonScreen extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            product.category.toUpperCase(),
+            product.brand.isNotEmpty && product.brand != '-' ? product.brand : 'Tanpa Merk',
             style: const TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.bold,
+              fontSize: 11,
               color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -219,9 +333,9 @@ class ComparisonScreen extends StatelessWidget {
       child: Text(
         title,
         style: GoogleFonts.lexend(
-          fontSize: 15,
+          fontSize: 14,
           fontWeight: FontWeight.bold,
-          color: AppColors.primary,
+          color: AppColors.textPrimary,
         ),
       ),
     );
@@ -236,11 +350,10 @@ class ComparisonScreen extends StatelessWidget {
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,7 +363,7 @@ class ComparisonScreen extends StatelessWidget {
             style: const TextStyle(
               fontSize: 11,
               color: AppColors.textSecondary,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 6),
@@ -260,30 +373,29 @@ class ComparisonScreen extends StatelessWidget {
                 child: Text(
                   valA,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: isAmanA != null
-                        ? (isAmanA ? AppColors.success : AppColors.danger)
-                        : AppColors.textPrimary,
+                    color: isAmanA == null
+                        ? AppColors.textPrimary
+                        : (isAmanA ? AppColors.success : AppColors.danger),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
               Container(
                 width: 1,
-                height: 20,
-                color: AppColors.border,
+                height: 16,
+                color: Colors.grey.shade300,
+                margin: const EdgeInsets.symmetric(horizontal: 8),
               ),
-              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   valB,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: isAmanB != null
-                        ? (isAmanB ? AppColors.success : AppColors.danger)
-                        : AppColors.textPrimary,
+                    color: isAmanB == null
+                        ? AppColors.textPrimary
+                        : (isAmanB ? AppColors.success : AppColors.danger),
                   ),
                 ),
               ),
@@ -304,9 +416,9 @@ class ComparisonScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.dangerLight.withValues(alpha: 0.1),
+        color: AppColors.dangerLight.withAlpha(25),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.danger.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.danger.withAlpha(50)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -399,13 +511,13 @@ class ComparisonScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
               decoration: BoxDecoration(
                 color: isCommon 
-                    ? AppColors.success.withValues(alpha: 0.15) 
+                    ? AppColors.success.withAlpha(35) 
                     : AppColors.surface,
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
                   color: isCommon 
-                      ? AppColors.success.withValues(alpha: 0.3) 
-                      : AppColors.border.withValues(alpha: 0.3),
+                      ? AppColors.success.withAlpha(70) 
+                      : AppColors.border.withAlpha(70),
                 ),
               ),
               child: Row(
@@ -436,9 +548,9 @@ class ComparisonScreen extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.success.withValues(alpha: 0.05),
+        color: AppColors.success.withAlpha(12),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.success.withValues(alpha: 0.15)),
+        border: Border.all(color: AppColors.success.withAlpha(35)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -464,7 +576,7 @@ class ComparisonScreen extends StatelessWidget {
             children: common.map((c) => Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.1),
+                color: AppColors.success.withAlpha(25),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
