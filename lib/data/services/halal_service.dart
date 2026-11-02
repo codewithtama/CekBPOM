@@ -27,10 +27,34 @@ class HalalService {
     'taro',
     'chitato',
     'silverqueen',
+    'biore',
+    'garnier',
+    'ponds',
+    'pond\'s',
+    'vaseline',
+    'lifebuoy',
+    'sunlight',
+    'bango',
+    'royco',
+    'sasa',
+    'ajinomoto',
+    'kapal api',
+    'torabika',
+    'luwak',
   };
 
+  /// Builds direct URL to BPJPH halal certificate database with product query
+  static String buildVerificationUrl(String query) {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) {
+      return ApiConstants.bpjphHalalSearchUrl;
+    }
+    final encoded = Uri.encodeComponent(trimmed);
+    return '${ApiConstants.bpjphHalalSearchUrl}?produk=$encoded';
+  }
+
   /// Evaluates Halal certification status for a BPOM product and generates
-  /// direct link to BPJPH Kemenag official database
+  /// direct link to BPJPH Kemenag official database (https://bpjph.halal.go.id/cari/sertifikat)
   static HalalCheckResult checkProductHalal(ProductModel product) {
     developer.log('Evaluating Halal status for: ${product.name}', name: 'HalalService');
 
@@ -39,8 +63,7 @@ class HalalService {
         ? product.brand
         : product.name;
 
-    final encoded = Uri.encodeComponent(searchQuery);
-    final verificationUrl = '${ApiConstants.bpjphHalalSearchUrl}?query=$encoded';
+    final verificationUrl = buildVerificationUrl(searchQuery);
 
     final lowerBrand = product.brand.toLowerCase();
     final lowerName = product.name.toLowerCase();
@@ -76,4 +99,3 @@ class HalalService {
     );
   }
 }
-

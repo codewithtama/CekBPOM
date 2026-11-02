@@ -25,7 +25,7 @@ void main() {
 
       expect(result.isCertified, isTrue);
       expect(result.status, 'TERDAFTAR RESMI');
-      expect(result.officialVerificationUrl.contains('info.halal.go.id'), isTrue);
+      expect(result.officialVerificationUrl.contains('bpjph.halal.go.id/cari/sertifikat'), isTrue);
     });
 
     test('generates valid official verification link for unverified products', () {

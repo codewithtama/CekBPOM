@@ -14,6 +14,6 @@ class ApiConstants {
   static const String bpomNewsUrl = 'https://www.pom.go.id/berita';
 
   // BPJPH Kemenag RI Halal Portal
-  static const String bpjphHalalSearchUrl = 'https://info.halal.go.id/cari/';
-  static const String kemenagHalalPortalUrl = 'https://halal.go.id/';
+  static const String bpjphHalalSearchUrl = 'https://bpjph.halal.go.id/cari/sertifikat';
+  static const String kemenagHalalPortalUrl = 'https://bpjph.halal.go.id/';
 }

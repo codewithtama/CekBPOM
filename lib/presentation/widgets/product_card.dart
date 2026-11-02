@@ -150,10 +150,8 @@ class ProductCard extends ConsumerWidget {
                   ),
 
                   // Halal Certification Status Card
-                  if (product.isFound) ...[
-                    const SizedBox(height: 12),
-                    _buildHalalSection(context),
-                  ],
+                  const SizedBox(height: 12),
+                  _buildHalalSection(context),
 
                   // Detailed Skin Safety & Ingredient Analysis
                   if (product.ingredients.isNotEmpty) ...[
