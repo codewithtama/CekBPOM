@@ -10,6 +10,8 @@ import 'ocr_scanner_screen.dart';
 import 'search_screen.dart';
 import 'scanner_screen.dart';
 import 'result_screen.dart';
+import '../providers/update_provider.dart';
+import '../widgets/update_dialog.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -20,6 +22,25 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final TextEditingController _manualInputController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkUpdateSilently();
+    });
+  }
+
+  Future<void> _checkUpdateSilently() async {
+    try {
+      final info = await ref.read(updateProvider.notifier).checkForUpdate();
+      if (mounted && info != null && info.hasUpdate) {
+        UpdateDialog.show(context, info: info);
+      }
+    } catch (_) {
+      // Silent check on launch should never block or disturb user interaction
+    }
+  }
 
   @override
   void dispose() {

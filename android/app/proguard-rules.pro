@@ -5,3 +5,6 @@
 -dontwarn com.google.mlkit.vision.text.korean.**
 -dontwarn com.google.mlkit.vision.text.**
 
+# OTA Update plugin
+-keep class sk.fourq.otaupdate.** { *; }
+-dontwarn sk.fourq.otaupdate.**

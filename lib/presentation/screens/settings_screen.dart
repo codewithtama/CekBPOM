@@ -7,6 +7,8 @@ import '../../core/constants/api_constants.dart';
 import '../../core/constants/app_colors.dart';
 import '../providers/settings_provider.dart';
 import '../providers/history_provider.dart';
+import '../providers/update_provider.dart';
+import '../widgets/update_dialog.dart';
 import 'about_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -80,8 +82,6 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-
-
   void _confirmClearData(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
@@ -129,9 +129,55 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  Future<void> _checkForUpdates(BuildContext context, WidgetRef ref) async {
+    final info = await ref.read(updateProvider.notifier).checkForUpdate();
+    if (!context.mounted) return;
+
+    if (info != null) {
+      if (info.hasUpdate) {
+        UpdateDialog.show(context, info: info);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Aplikasi sudah versi terbaru (v${info.currentVersion}).',
+                    style: GoogleFonts.lexend(fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.success,
+            action: SnackBarAction(
+              label: 'Lihat Info',
+              textColor: Colors.white,
+              onPressed: () {
+                UpdateDialog.show(context, info: info);
+              },
+            ),
+          ),
+        );
+      }
+    } else {
+      final error = ref.read(updateProvider).errorMessage;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error ?? 'Gagal memeriksa pembaruan.'),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
+    final updateState = ref.watch(updateProvider);
+    final isCheckingUpdate = updateState.status == UpdateStatus.checking;
 
     return Scaffold(
       appBar: AppBar(
@@ -266,10 +312,31 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
 
-          // APP VERSION & ABOUT SECTION
-          _buildSectionTitle('Info Aplikasi'),
+          // APP VERSION & UPDATE (OTA) SECTION
+          _buildSectionTitle('Pembaruan & Info Aplikasi'),
           _buildSettingsCard(
             children: [
+              ListTile(
+                onTap: isCheckingUpdate ? null : () => _checkForUpdates(context, ref),
+                leading: const Icon(Icons.system_update_rounded, color: AppColors.primary),
+                title: Text(
+                  'Periksa Pembaruan (OTA)',
+                  style: GoogleFonts.lexend(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+                subtitle: const Text(
+                  'Cek versi rilis terbaru dan perbarui aplikasi langsung',
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+                trailing: isCheckingUpdate
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2.2),
+                      )
+                    : const Icon(Icons.cloud_download_outlined, color: AppColors.primary),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              ),
+              const Divider(height: 1, indent: 56),
               ListTile(
                 onTap: () {
                   Navigator.push(

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/constants/app_colors.dart';
+import '../providers/update_provider.dart';
+import '../widgets/update_dialog.dart';
 
-class AboutScreen extends StatelessWidget {
+class AboutScreen extends ConsumerWidget {
   const AboutScreen({super.key});
 
   Future<void> _launchUrl(BuildContext context, String url) async {
@@ -28,8 +31,55 @@ class AboutScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _checkForUpdates(BuildContext context, WidgetRef ref) async {
+    final info = await ref.read(updateProvider.notifier).checkForUpdate();
+    if (!context.mounted) return;
+
+    if (info != null) {
+      if (info.hasUpdate) {
+        UpdateDialog.show(context, info: info);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Aplikasi sudah dalam versi terbaru (v${info.currentVersion}).',
+                    style: GoogleFonts.lexend(fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.success,
+            action: SnackBarAction(
+              label: 'Info Rilis',
+              textColor: Colors.white,
+              onPressed: () {
+                UpdateDialog.show(context, info: info);
+              },
+            ),
+          ),
+        );
+      }
+    } else {
+      final error = ref.read(updateProvider).errorMessage;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error ?? 'Gagal memeriksa pembaruan.'),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final updateState = ref.watch(updateProvider);
+    final isChecking = updateState.status == UpdateStatus.checking;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Tentang Aplikasi'),
@@ -65,8 +115,31 @@ class AboutScreen extends StatelessWidget {
               ),
             ),
             const _AppVersionLabel(),
-            const SizedBox(height: 32),
-            
+            const SizedBox(height: 12),
+
+            // Check update button
+            OutlinedButton.icon(
+              onPressed: isChecking ? null : () => _checkForUpdates(context, ref),
+              icon: isChecking
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.system_update_rounded, size: 16),
+              label: Text(
+                isChecking ? 'Memeriksa Pembaruan...' : 'Periksa Pembaruan (OTA)',
+                style: GoogleFonts.lexend(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: BorderSide(color: AppColors.primary.withValues(alpha: 0.4)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+            ),
+            const SizedBox(height: 28),
+
             // Description Card
             Card(
               elevation: 0,
@@ -124,7 +197,7 @@ class AboutScreen extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: AppColors.primaryLight,
                         shape: BoxShape.circle,
                       ),
@@ -172,7 +245,7 @@ class AboutScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // CTA Button for complaint
             ElevatedButton.icon(
               onPressed: () => _launchUrl(context, ApiConstants.bpomComplaintUrl),
