@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/barcode_parser.dart';
 import '../../core/utils/ingredients_analyzer.dart';
 import '../../data/models/product_model.dart';
 import '../../data/services/halal_service.dart';
 import '../providers/pao_provider.dart';
+import '../screens/halal_webview_screen.dart';
 import 'pao_setup_sheet.dart';
 import 'status_badge.dart';
 
@@ -352,20 +352,28 @@ class ProductCard extends ConsumerWidget {
             style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.3),
           ),
           const SizedBox(height: 12),
-          OutlinedButton.icon(
-            onPressed: () async {
-              final uri = Uri.parse(halalResult.officialVerificationUrl);
-              if (await canLaunchUrl(uri)) {
-                await launchUrl(uri, mode: LaunchMode.externalApplication);
-              }
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HalalWebviewScreen(
+                    initialUrl: halalResult.officialVerificationUrl,
+                    title: product.name,
+                    query: halalResult.query,
+                  ),
+                ),
+              );
             },
-            icon: const Icon(Icons.open_in_new_rounded, size: 16),
+            icon: const Icon(Icons.verified_outlined, size: 16),
             label: Text(
-              'Cek Database Resmi BPJPH Kemenag',
-              style: GoogleFonts.lexend(fontSize: 12, fontWeight: FontWeight.w600),
+              'Cek Database Resmi BPJPH (In-App)',
+              style: GoogleFonts.lexend(fontSize: 12, fontWeight: FontWeight.bold),
             ),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 38),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isCertified ? AppColors.success : AppColors.primary,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 40),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
           ),
