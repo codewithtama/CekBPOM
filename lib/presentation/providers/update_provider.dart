@@ -200,3 +200,4 @@ final updateProvider = StateNotifierProvider<UpdateNotifier, UpdateState>((ref) 
   final service = ref.watch(updateServiceProvider);
   return UpdateNotifier(service);
 });
+

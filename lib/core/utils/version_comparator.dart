@@ -70,3 +70,4 @@ class VersionComparator {
     return effectiveRemoteBuild > effectiveCurrentBuild;
   }
 }
+

@@ -389,3 +389,4 @@ class UpdateDialog extends ConsumerWidget {
     );
   }
 }
+
