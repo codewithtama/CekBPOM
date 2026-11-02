@@ -188,3 +188,4 @@ final halalSearchProvider =
   final service = ref.watch(halalServiceProvider);
   return HalalSearchNotifier(service);
 });
+

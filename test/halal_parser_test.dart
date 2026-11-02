@@ -45,3 +45,4 @@ void main() {
     expect(totalPagesMatch?.group(1), '5');
   });
 }
+

@@ -96,3 +96,4 @@ class HalalSearchResult {
   bool get hasMore => currentPage < totalPages;
   bool get isEmpty => items.isEmpty;
 }
+
