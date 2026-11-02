@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../core/constants/api_constants.dart';
 import '../../core/constants/app_colors.dart';
 import '../providers/history_provider.dart';
 import '../providers/tab_provider.dart';
-import 'halal_webview_screen.dart';
+import 'halal_search_screen.dart';
 import 'ocr_scanner_screen.dart';
 import 'search_screen.dart';
 import 'scanner_screen.dart';
@@ -409,11 +408,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const HalalWebviewScreen(
-                          initialUrl: ApiConstants.bpjphHalalSearchUrl,
-                          title: 'Pencarian Sertifikat Halal',
-                          query: '',
-                        ),
+                        builder: (context) => const HalalSearchScreen(),
                       ),
                     );
                   },

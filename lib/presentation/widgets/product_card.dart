@@ -8,7 +8,7 @@ import '../../core/utils/ingredients_analyzer.dart';
 import '../../data/models/product_model.dart';
 import '../../data/services/halal_service.dart';
 import '../providers/pao_provider.dart';
-import '../screens/halal_webview_screen.dart';
+import '../screens/halal_search_screen.dart';
 import 'pao_setup_sheet.dart';
 import 'status_badge.dart';
 
@@ -355,17 +355,15 @@ class ProductCard extends ConsumerWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => HalalWebviewScreen(
-                    initialUrl: halalResult.officialVerificationUrl,
-                    title: product.name,
-                    query: halalResult.query,
+                  builder: (context) => HalalSearchScreen(
+                    initialQuery: halalResult.query,
                   ),
                 ),
               );
             },
             icon: const Icon(Icons.verified_outlined, size: 16),
             label: Text(
-              'Cek Database Resmi BPJPH (In-App)',
+              'Cek Database Resmi BPJPH (Native)',
               style: GoogleFonts.lexend(fontSize: 12, fontWeight: FontWeight.bold),
             ),
             style: ElevatedButton.styleFrom(
