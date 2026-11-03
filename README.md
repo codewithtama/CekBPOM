@@ -3,7 +3,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.41.7-02569B?logo=flutter)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.11.5-0175C2?logo=dart)](https://dart.dev)
 [![Platform](https://img.shields.io/badge/Platform-Android-3DDC84?logo=android)](https://www.android.com)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-Commercial%20Royalty%2010%25-red.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/Unit%20Tests-38%2F38%20Passed-brightgreen)](test)
 [![Release](https://img.shields.io/badge/Version-1.3.0%2B4-orange.svg)](https://github.com/codewithtama/CekBPOM/releases)
 
@@ -204,5 +204,7 @@ Alur kerja GitHub Actions terkonfigurasi di [`.github/workflows/release.yml`](.g
 
 ## Lisensi & Batasan Tanggung Jawab
 
-- **Lisensi**: Didistribusikan di bawah lisensi [MIT](LICENSE).
+- **Lisensi**: Perangkat lunak ini dilindungi hak cipta di bawah [Custom Commercial Restriction & Royalty License](LICENSE).
+  - **Penggunaan Non-Komersial**: Bebas digunakan, dipelajari, dan dimodifikasi untuk tujuan pribadi, edukasi, dan riset non-komersial.
+  - **Pembatasan Penjualan & Hak Royalti**: Dilarang keras memperjualbelikan, menyewakan, melisensikan ulang, atau memonetisasi perangkat lunak ini tanpa pemberitahuan serta izin tertulis terlebih dahulu dari Pemegang Hak Cipta (*Dimas Alfa Pratama / codewithtama*). Setiap penjualan atau monetisasi komersial wajib memberikan komisi/royalti sebesar **10% (sepuluh persen)** dari total pendapatan kotor (*gross revenue*) kepada Pemegang Hak Cipta.
 - **Disclaimer**: Aplikasi ini dikembangkan secara independen oleh komunitas dan masyarakat untuk kepentingan keterbukaan informasi publik perlindungan konsumen. Seluruh data izin edar BPOM, sertifikat halal BPJPH, dan merek terdaftar HKI bersumber langsung dari data publik pangkalan data resmi lembaga terkait (BPOM RI, BPJPH Kemenag RI, dan DJKI Kemenkumham RI).

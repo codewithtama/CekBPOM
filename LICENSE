@@ -1,17 +1,42 @@
-MIT License
+CUSTOM COMMERCIAL RESTRICTION & ROYALTY SOFTWARE LICENSE
 
-Copyright (c) 2026 codewithtama
+Copyright (c) 2026 Dimas Alfa Pratama (codewithtama) <tamavons12@gmail.com>. All rights reserved.
 
+================================================================================
+ENGLISH VERSION (LEGAL TERMS)
+================================================================================
+
+1. GRANT OF PERMISSION
 Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+of this software and associated documentation files (the "Software"), to use,
+copy, modify, study, merge, and run the Software exclusively for personal,
+educational, non-commercial, and non-monetized purposes, subject to the
+conditions below.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+2. COMMERCIAL RESTRICTIONS & RESALE CONDITIONS
+Commercial use, distribution for a fee, sublicensing, reselling, or any form
+of monetization involving this Software (in whole, in part, or in derivative
+works) is STRICTLY PROHIBITED unless all of the following conditions are met:
 
+    a. Prior Written Notification & Approval:
+       You must provide prior formal written notification to the copyright
+       holder (Dimas Alfa Pratama / codewithtama via email: tamavons12@gmail.com)
+       and receive explicit written acknowledgment/consent before marketing,
+       selling, bundling, or offering the Software for any financial compensation.
+
+    b. Mandatory 10% Royalty / Commission:
+       In the event the Software, its source code, compiled binaries, modified
+       forks, or any product/service substantially embedding this Software is sold,
+       licensed, or otherwise monetized, you are legally obligated to pay a mandatory
+       royalty/commission of no less than 10% (ten percent) of all gross sales,
+       revenue, subscription fees, or total consideration received from such
+       commercial exploitation to the copyright holder.
+
+3. ATTRIBUTION
+The above copyright notice, this condition notice, and permission notice shall
+be included in all copies or substantial portions of the Software.
+
+4. DISCLAIMER OF WARRANTY & LIMITATION OF LIABILITY
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,3 +44,37 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+================================================================================
+VERSI BAHASA INDONESIA (PENJELASAN KETENTUAN HUKUM)
+================================================================================
+
+1. HAK PENGGUNAAN NON-KOMERSIAL
+Perangkat lunak ini bebas digunakan, dipelajari, dimodifikasi, dan dijalankan
+secara gratis hanya untuk keperluan pribadi, riset, edukasi, dan tujuan
+non-komersial (tanpa monetisasi).
+
+2. KETENTUAN PENJUALAN & PEMBAGIAN HASIL (KOMISI 10%)
+Dilarang keras memperjualbelikan, mendistribusikan ulang berbayar, memonetisasi,
+atau menyewakan perangkat lunak ini (baik sebagian, utuh, maupun hasil modifikasinya)
+tanpa memenuhi dua syarat wajib berikut:
+
+    a. Pemberitahuan & Izin Tertulis:
+       Wajib memberitahukan secara tertulis dan mendapatkan izin dari Pemegang
+       Hak Cipta (Dimas Alfa Pratama / codewithtama melalui email tamavons12@gmail.com)
+       sebelum menjual atau memasarkan perangkat lunak ini.
+
+    b. Kewajiban Royalti / Komisi 10%:
+       Setiap pihak yang menjual, melisensikan ulang berbayar, atau memperoleh
+       keuntungan finansial dari perangkat lunak ini wajib memberikan royalti /
+       komisi sebesar 10% (sepuluh persen) dari total pendapatan kotor (gross revenue)
+       hasil penjualan kepada Pemegang Hak Cipta.
+
+3. ATRIBUSI
+Pemberitahuan hak cipta dan ketentuan lisensi ini wajib disertakan dalam setiap
+salinan atau bagian substansial dari perangkat lunak.
+
+4. PENAFIAN TANGGUNG JAWAB
+Perangkat lunak ini disediakan "sebagaimana adanya" (AS IS) tanpa jaminan apa pun.
+Pemegang hak cipta tidak bertanggung jawab atas segala klaim, kerugian, atau
+tuntutan yang timbul dari penggunaan perangkat lunak ini.
