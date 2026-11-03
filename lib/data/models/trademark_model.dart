@@ -127,3 +127,4 @@ class TrademarkSearchResult {
 
   bool get isEmpty => items.isEmpty;
 }
+

@@ -10,7 +10,7 @@ import '../../core/constants/app_colors.dart';
 import '../../data/models/trademark_model.dart';
 import '../providers/trademark_provider.dart';
 
-/// Screen providing native lookup for registered trademarks (HKI / Merek Dagang)
+/// Screen providing lookup for registered trademarks (HKI / Merek Dagang)
 /// from the DJKI Kemenkumham database via the haki.id API.
 class TrademarkSearchScreen extends ConsumerStatefulWidget {
   const TrademarkSearchScreen({
@@ -106,7 +106,7 @@ class _TrademarkSearchScreenState extends ConsumerState<TrademarkSearchScreen> {
         '• Klasifikasi: ${item.classDescription}\n'
         '• Tanggal Daftar: ${item.registrationDate}\n'
         '• Perlindungan s/d: ${item.expirationDate}\n\n'
-        'Diverifikasi via Aplikasi CekBPOM (Sumber: DJKI Kemenkumham / haki.id).';
+        'Diverifikasi via Aplikasi CekBPOM (Sumber: DJKI Kemenkumham RI).';
     Share.share(text, subject: 'Hak Merek HKI: ${item.mark}');
   }
 
@@ -131,7 +131,7 @@ class _TrademarkSearchScreenState extends ConsumerState<TrademarkSearchScreen> {
               style: GoogleFonts.lexend(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const Text(
-              'Pangkalan Data Kekayaan Intelektual (DJKI / haki.id)',
+              'Pangkalan Data Kekayaan Intelektual (DJKI Kemenkumham)',
               style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
             ),
           ],
@@ -715,7 +715,7 @@ class _TrademarkSearchScreenState extends ConsumerState<TrademarkSearchScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              'Tidak ditemukan merek terdaftar untuk kata kunci "$query" di pangkalan data DJKI/haki.id. Coba cari dengan nama merek pokok atau nama PT pemohon.',
+              'Tidak ditemukan merek terdaftar untuk kata kunci "$query" di pangkalan data DJKI Kemenkumham. Coba cari dengan nama merek pokok atau nama PT pemohon.',
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
             ),
@@ -740,7 +740,7 @@ class _TrademarkSearchScreenState extends ConsumerState<TrademarkSearchScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              message ?? 'Terjadi kendala jaringan saat menghubungi database haki.id.',
+              message ?? 'Terjadi kendala jaringan saat memuat data merek.',
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),

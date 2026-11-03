@@ -9,7 +9,7 @@ import '../../data/models/halal_product_model.dart';
 import '../../data/services/halal_service.dart';
 import '../providers/halal_search_provider.dart';
 
-/// Screen providing 100% native in-app search against official BPJPH Halal certificate database.
+/// Screen for searching the official BPJPH Halal certificate database.
 class HalalSearchScreen extends ConsumerStatefulWidget {
   const HalalSearchScreen({
     super.key,
@@ -296,7 +296,7 @@ class _HalalSearchScreenState extends ConsumerState<HalalSearchScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Pencarian Native Resmi',
+                        'Pencarian Resmi BPJPH',
                         style: GoogleFonts.lexend(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -659,7 +659,7 @@ class _HalalSearchScreenState extends ConsumerState<HalalSearchScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              message ?? 'Terjadi kendala jaringan saat menghubungi database BPJPH.',
+              message ?? 'Terjadi kendala jaringan saat memuat data sertifikat halal.',
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),

@@ -368,7 +368,7 @@ class ProductCard extends ConsumerWidget {
             },
             icon: const Icon(Icons.verified_outlined, size: 16),
             label: Text(
-              'Cek Database Resmi BPJPH (Native)',
+              'Cek Sertifikat Halal BPJPH',
               style: GoogleFonts.lexend(fontSize: 12, fontWeight: FontWeight.bold),
             ),
             style: ElevatedButton.styleFrom(
@@ -439,7 +439,7 @@ class ProductCard extends ConsumerWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Verifikasi kepemilikan dan status pendaftaran merek "$query" secara resmi pada database DJKI Kemenkumham.',
+            'Verifikasi kepemilikan dan status pendaftaran merek "$query" resmi DJKI Kemenkumham.',
             style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.3),
           ),
           const SizedBox(height: 12),
@@ -456,7 +456,7 @@ class ProductCard extends ConsumerWidget {
             },
             icon: const Icon(Icons.search_rounded, size: 16),
             label: Text(
-              'Cek Merek "$query" di HKI (Native)',
+              'Cek Merek "$query" di HKI',
               style: GoogleFonts.lexend(fontSize: 12, fontWeight: FontWeight.bold),
             ),
             style: OutlinedButton.styleFrom(

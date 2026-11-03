@@ -101,3 +101,4 @@ final trademarkProvider =
   final service = ref.watch(hakiServiceProvider);
   return TrademarkNotifier(service);
 });
+

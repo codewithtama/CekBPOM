@@ -445,7 +445,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               ),
                               const SizedBox(height: 2),
                               const Text(
-                                'Pencarian sertifikat halal resmi Kemenag RI (In-App)',
+                                'Pencarian sertifikat halal resmi Kemenag RI',
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: AppColors.textSecondary,
@@ -514,7 +514,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               ),
                               const SizedBox(height: 2),
                               const Text(
-                                'Cek status pendaftaran merek resmi via haki.id',
+                                'Cek status pendaftaran merek resmi Kemenkumham',
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: AppColors.textSecondary,
