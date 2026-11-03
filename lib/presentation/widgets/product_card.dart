@@ -9,6 +9,7 @@ import '../../data/models/product_model.dart';
 import '../../data/services/halal_service.dart';
 import '../providers/pao_provider.dart';
 import '../screens/halal_search_screen.dart';
+import '../screens/trademark_search_screen.dart';
 import 'pao_setup_sheet.dart';
 import 'status_badge.dart';
 
@@ -152,6 +153,10 @@ class ProductCard extends ConsumerWidget {
                   // Halal Certification Status Card
                   const SizedBox(height: 12),
                   _buildHalalSection(context),
+
+                  // Trademark & HKI Brand Legality Section
+                  const SizedBox(height: 12),
+                  _buildTrademarkSection(context),
 
                   // Detailed Skin Safety & Ingredient Analysis
                   if (product.ingredients.isNotEmpty) ...[
@@ -369,6 +374,94 @@ class ProductCard extends ConsumerWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: isCertified ? AppColors.success : AppColors.primary,
               foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 40),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrademarkSection(BuildContext context) {
+    final query = (product.brand.isNotEmpty && product.brand != '-')
+        ? product.brand
+        : product.name;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withAlpha(12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.primary.withAlpha(50),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withAlpha(25),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.app_registration_rounded,
+                  color: AppColors.primary,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Legalitas Merek & HKI (DJKI)',
+                      style: GoogleFonts.lexend(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const Text(
+                      'Pangkalan Data Kekayaan Intelektual RI',
+                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Verifikasi kepemilikan dan status pendaftaran merek "$query" secara resmi pada database DJKI Kemenkumham.',
+            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.3),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TrademarkSearchScreen(
+                    initialQuery: query,
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.search_rounded, size: 16),
+            label: Text(
+              'Cek Merek "$query" di HKI (Native)',
+              style: GoogleFonts.lexend(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              side: const BorderSide(color: AppColors.primary, width: 1.5),
               minimumSize: const Size(double.infinity, 40),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),

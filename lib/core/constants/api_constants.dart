@@ -16,4 +16,8 @@ class ApiConstants {
   // BPJPH Kemenag RI Halal Portal
   static const String bpjphHalalSearchUrl = 'https://bpjph.halal.go.id/cari/sertifikat';
   static const String kemenagHalalPortalUrl = 'https://bpjph.halal.go.id/';
+
+  // HKI / DJKI Trademark Portal (haki.id)
+  static const String hakiApiUrl = 'https://haki.id/api/trademarks';
+  static const String hakiBaseUrl = 'https://haki.id';
 }

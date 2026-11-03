@@ -9,6 +9,7 @@ import 'ocr_scanner_screen.dart';
 import 'search_screen.dart';
 import 'scanner_screen.dart';
 import 'result_screen.dart';
+import 'trademark_search_screen.dart';
 import '../providers/update_provider.dart';
 import '../widgets/update_dialog.dart';
 
@@ -456,6 +457,75 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         const Icon(
                           Icons.chevron_right_rounded,
                           color: AppColors.success,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Cek Merek & HKI Terdaftar (DJKI Kemenkumham via haki.id) Shortcut
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: AppColors.primary.withAlpha(16),
+                  border: Border.all(color: AppColors.primary.withAlpha(60), width: 1.5),
+                ),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const TrademarkSearchScreen(),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(16),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.app_registration_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Cek Legalitas Merek & HKI (DJKI)',
+                                style: GoogleFonts.lexend(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              const Text(
+                                'Cek status pendaftaran merek resmi via haki.id',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          color: AppColors.primary,
                         ),
                       ],
                     ),
