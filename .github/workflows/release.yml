@@ -40,6 +40,26 @@ jobs:
       - name: Run unit tests
         run: flutter test
 
+      - name: Setup Android Keystore (if secret is configured)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > android/app/release.jks
+            cat <<EOF > android/key.properties
+          storePassword=$KEYSTORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=release.jks
+          EOF
+            echo "Release keystore configured from repository secrets."
+          else
+            echo "No ANDROID_KEYSTORE_BASE64 secret found; falling back to default debug keystore."
+          fi
+
       - name: Build universal release APK
         run: |
           flutter build apk --release
